@@ -1,0 +1,133 @@
+.auth-page {
+  display: flex;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+
+  &__content {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    gap: 20px;
+
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+
+    margin: auto;
+    padding: 20px 32px 40px;
+
+    background-color: #fff;
+
+    transition: height 0.2s;
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  &__title {
+    font-size: 50px;
+    font-weight: 600;
+    color: #0062ff;
+    align-self: flex-start;
+    margin: 0;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 12px;
+  }
+
+  &__tab {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #407ddf;
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+    background-color: #fff;
+    border: 1px solid #407ddf;
+
+    &--active,
+    &:hover {
+      background-color: #407ddf;
+      color: #fff;
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    min-height: 314px;
+    width: 100%;
+    flex-grow: 1;
+  }
+
+  &__inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__input-collapsible {
+    display: grid;
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+
+    transition:
+      grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.25s ease,
+      margin-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0.3s;
+
+    &-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    &--collapsed {
+      grid-template-rows: 0fr;
+      opacity: 0;
+      visibility: hidden;
+      margin-bottom: 0;
+      pointer-events: none;
+    }
+  }
+
+  &__submit-btn {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+    background-color: #407ddf;
+    border: none;
+
+    &:hover {
+      background-color: #6198f0;
+    }
+
+    &:disabled {
+      background-color: #b5cdf0;
+      cursor: not-allowed;
+    }
+  }
+}
