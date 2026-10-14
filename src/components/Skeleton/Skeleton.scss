@@ -1,0 +1,31 @@
+$skeleton-base: #6198f0;
+$skeleton-highlight: #ef91e3;
+
+.skeleton {
+  width: 100%;
+  border-radius: 20px;
+
+  background: linear-gradient(
+    90deg,
+    $skeleton-base 0%,
+    $skeleton-base 35%,
+    $skeleton-highlight 50%,
+    $skeleton-base 65%,
+    $skeleton-base 100%
+  );
+
+  background-size: 200% 100%;
+
+  animation: skeletonPulse 1.6s ease-in-out infinite;
+
+  will-change: background-position;
+}
+
+@keyframes skeletonPulse {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}

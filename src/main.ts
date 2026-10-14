@@ -5,6 +5,7 @@ import { Router } from '@/router'
 
 import { User } from './api/auth'
 import { toast } from './components/Toast/Toast'
+import { renderRoomsPage } from './pages/RoomsPage/RoomsPage'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 export const router = new Router(app)
@@ -34,12 +35,7 @@ router
     title: 'Мои комнаты',
     isProtected: true,
     render: () => {
-      const el = document.createElement('div')
-      el.innerHTML = `
-        <h1>Мои комнаты</h1>
-        <a href="/rooms/1">Перейти в комнату 1</a>
-      `
-      return el
+      return renderRoomsPage()
     }
   })
   .addRoute({

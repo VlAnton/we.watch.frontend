@@ -5,7 +5,7 @@ import templateHtml from './Input.html?raw'
 export interface InputFieldProps {
   id?: string
   name?: string
-  label: string
+  label?: string
   type?: 'text' | 'password' | 'email' | 'number'
   placeholder?: string
   required?: boolean
@@ -32,14 +32,22 @@ export function createInputField(props: InputFieldProps): InputFieldInstance {
     throw new Error('Не удалось спарсить шаблон InputField')
   }
 
-  const labelEl = root.querySelector<HTMLLabelElement>('.input-field__label')!
+  let labelEl
   const inputEl = root.querySelector<HTMLInputElement>('.input-field__input')!
   const errorEl = root.querySelector<HTMLElement>('.input-field__error')!
 
-  labelEl.textContent = props.label
+  if (props.label) {
+    labelEl = document.createElement('label')
+    labelEl.classList.add('input-field__label')
+    labelEl.textContent = props.label
+    root.prepend(labelEl)
+  }
+
   inputEl.type = props.type || 'text'
   if (props.id) {
-    labelEl.htmlFor = props.id
+    if (labelEl) {
+      labelEl.htmlFor = props.id
+    }
     inputEl.id = props.id
   }
   if (props.name) inputEl.name = props.name

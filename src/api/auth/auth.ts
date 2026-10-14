@@ -27,7 +27,7 @@ export async function getMe(): Promise<{ user: User }> {
 }
 
 export async function logoutUser(): Promise<void> {
-  await apiFetch('/api/auth/logout', {
+  apiFetch('/api/auth/logout', {
     method: 'POST'
   })
 }
