@@ -1,16 +1,23 @@
+import { HttpError } from '../error'
 import { ApiErrorResponse } from './types'
 
 export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const response = await fetch(endpoint, {
-    ...options,
-    headers: {
-      ...options.headers
-    },
-    credentials: 'include'
-  })
+  let response: Response
+
+  try {
+    response = await fetch(endpoint, {
+      ...options,
+      headers: {
+        ...options.headers
+      },
+      credentials: 'include'
+    })
+  } catch (error) {
+    throw new HttpError(500, `Ошибка сети: ${error}`)
+  }
 
   if (response.status === 401) {
     window.dispatchEvent(new CustomEvent('auth:unauthorized'))
@@ -28,7 +35,7 @@ export async function apiFetch<T>(
       errorMessage = errorData.message
     }
 
-    throw new Error(errorMessage)
+    throw new HttpError(response.status, errorMessage)
   }
 
   if (response.status === 204) {

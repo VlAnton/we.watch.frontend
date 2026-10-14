@@ -1,4 +1,6 @@
 import { getMe } from '@/api/auth'
+import { HttpError } from '@/api/error'
+import { renderErrorPage } from '@/pages/Error/Error'
 
 import type { CleanupFn, Route, RouteParams } from './types'
 
@@ -84,13 +86,11 @@ export class Router {
     }
 
     if (!matchedRoute) {
-      const notFoundRoute = this.routes.find((r) => r.path === '*')
-      if (notFoundRoute) {
-        matchedRoute = notFoundRoute
-      } else {
-        this.rootElement.innerHTML = '<h2>404 — Страница не найдена</h2>'
-        return
-      }
+      renderErrorPage(
+        this.rootElement as HTMLDivElement,
+        new HttpError(404, 'Страница не найдена')
+      )
+      return
     }
 
     if (matchedRoute.isProtected) {

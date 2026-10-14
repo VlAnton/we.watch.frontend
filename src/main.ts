@@ -59,18 +59,6 @@ router
       return document.createElement('div')
     }
   })
-  .addRoute({
-    path: '*',
-    title: 'Не найдено',
-    render: () => {
-      const el = document.createElement('div')
-      el.innerHTML = `
-        <h2>Страница не найдена</h2>
-        <a href="/">На главную</a>
-      `
-      return el
-    }
-  })
 
 window.addEventListener('auth:unauthorized', () => {
   router.navigate('/auth')
