@@ -1,6 +1,6 @@
 import './AuthPage.scss'
 
-import { loginUser, logoutUser, registerUser } from '@/api/auth'
+import { loginUser, registerUser } from '@/api/auth'
 import { createInputField, InputFieldInstance } from '@/components/Input/Input'
 
 import templateHtml from './AuthPage.html?raw'
@@ -180,36 +180,4 @@ export function renderAuthPage(props: AuthPageProps) {
   })
 
   return pageRoot
-}
-
-export function showAuth(app: HTMLDivElement) {
-  app.innerHTML = ''
-
-  const authScreen = renderAuthPage({
-    onSuccess: (user) => {
-      app.innerHTML = `
-        <div style="padding: 40px; color: #407ddf; text-align: center;">
-          <h2>Привет, ${user.username}! 🎉</h2>
-          <p>Вы успешно авторизованы. Токен сохранён.</p>
-          <button id="logout-btn" style="padding: 8px 16px; cursor: pointer;">Выйти</button>
-        </div>
-      `
-
-      document.querySelector('#logout-btn')?.addEventListener('click', () => {
-        logoutUser()
-          .then(() => {
-            showAuth(app)
-          })
-          .catch((err) => {
-            const message = err instanceof Error ? err.message : 'Произошла ошибка'
-            alert(`Ошибка при выходе: ${message}`)
-          })
-      })
-    },
-    onError: (message) => {
-      alert(`Ошибка: ${message}`)
-    }
-  })
-
-  app.appendChild(authScreen)
 }

@@ -3,6 +3,9 @@ import './style.css'
 import { renderAuthPage } from '@/pages/AuthPage/AuthPage'
 import { Router } from '@/router'
 
+import { User } from './api/auth'
+import { toast } from './components/Toast/Toast'
+
 const app = document.querySelector<HTMLDivElement>('#app')!
 export const router = new Router(app)
 
@@ -12,11 +15,16 @@ router
     title: 'Вход',
     render: () => {
       return renderAuthPage({
-        onSuccess: () => {
+        onSuccess: (user: User) => {
+          toast.success(`Рады видеть вас снова, ${user.username}!`, {
+            title: 'Вход выполнен'
+          })
           router.navigate('/rooms')
         },
         onError: (message) => {
-          alert(`Ошибка: ${message}`)
+          toast.error(message, {
+            title: 'Ошибка авторизации'
+          })
         }
       })
     }
