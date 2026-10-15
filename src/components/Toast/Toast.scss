@@ -19,10 +19,8 @@
   padding: 14px 16px;
   background: #161f2d;
   border-radius: 16px;
-  box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
-  color: #f8fafc;
+  box-shadow: 0 10px 25px -5px $background-overlay;
+  color: $background-primary;
   font-family: inherit;
 
   opacity: 0;
@@ -82,7 +80,7 @@
     flex-shrink: 0;
     border: none;
     background: transparent;
-    color: #94a3b8;
+    color: $background-primary;
     font-size: 18px;
     cursor: pointer;
     padding: 0 4px;
@@ -90,7 +88,7 @@
     transition: color 0.15s;
 
     &:hover {
-      color: #ffffff;
+      color: $background-primary;
     }
   }
 
@@ -98,23 +96,23 @@
     border-left: 4px solid #0ec88a;
 
     .toast__icon {
-      color: #10b981;
+      color: $success;
     }
 
     .toast__title {
-      color: #34d399;
+      color: $success;
     }
   }
 
   &--error {
-    border-left: 4px solid #ef4444;
+    border-left: 4px solid $error;
 
     .toast__icon {
-      color: #ef4444;
+      color: $error;
     }
 
     .toast__title {
-      color: #f87171;
+      color: $error;
     }
   }
 }

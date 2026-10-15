@@ -20,12 +20,12 @@
       background-color 0.2s,
       color 0.2s;
     background-color: #fff;
-    border: 1px solid #407ddf;
+    border: 1px solid $border;
 
     &--active,
     &:hover {
-      background-color: #407ddf;
-      color: #fff;
+      background-color: $border-hovered;
+      color: $background-primary;
     }
   }
 
@@ -76,20 +76,20 @@
     border-radius: 16px;
     font-size: 14px;
     font-weight: 500;
-    color: #fff;
+    color: $background-primary;
     cursor: pointer;
     transition:
       background-color 0.2s,
       color 0.2s;
-    background-color: #407ddf;
+    background-color: $button;
     border: none;
 
     &:hover {
-      background-color: #6198f0;
+      background-color: $button-hovered;
     }
 
     &:disabled {
-      background-color: #b5cdf0;
+      background-color: $button-disabled;
       cursor: not-allowed;
     }
   }

@@ -5,14 +5,14 @@
   width: 100%;
 
   input::placeholder {
-    color: #407ddf;
+    color: $text-primary;
     opacity: 0.6;
   }
 
   &__label {
     font-size: 13px;
     font-weight: 500;
-    color: #407ddf;
+    color: $text-primary;
     transition: color 0.2s;
   }
 
@@ -25,7 +25,7 @@
     width: 100%;
     box-sizing: border-box;
     padding: 12px;
-    border: 1px solid #3c7eea;
+    border: 1px solid $border;
     border-radius: 16px;
     font-size: 14px;
     outline: none;
@@ -37,23 +37,23 @@
 
   &__input:focus {
     transform: scale(1.01);
-    border-color: #1066f1;
+    border-color: $border;
     box-shadow: 0 -1px 26px -3px rgba(205, 74, 188, 0.5);
   }
 
   &.has-error {
     .input-field__input {
-      border-color: #ef4444;
+      border-color: $error;
     }
 
     .input-field__label {
-      color: #fca5a5;
+      color: $error-label;
     }
   }
 
   &__error {
     font-size: 12px;
-    color: #ef4444;
+    color: $error;
     margin-top: 2px;
   }
 }

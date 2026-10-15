@@ -2,13 +2,13 @@
   border-radius: 16px;
   font-size: 14px;
   font-weight: 500;
-  color: #fff;
+  color: $background-primary;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
     transform 0.2s ease;
-  background-color: #407ddf;
+  background-color: $button;
   border: none;
 
   &__container {
@@ -27,16 +27,17 @@
   }
 
   &:hover {
-    background-color: #6198f0;
+    background-color: $button-hovered;
     transform: scale(1.03, 1.05);
   }
 
   &:active {
-    background-color: #407ddf;
+    background-color: $button-hovered;
   }
 
   &:disabled {
-    background-color: #b5cdf0;
+    background-color: $button-disabled;
     cursor: not-allowed;
+    pointer-events: none;
   }
 }
