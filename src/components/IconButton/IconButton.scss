@@ -1,0 +1,42 @@
+.icon-button {
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+  background-color: #407ddf;
+  border: none;
+
+  &__container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  }
+
+  &:hover {
+    background-color: #6198f0;
+    transform: scale(105%);
+  }
+
+  &:active {
+    background-color: #407ddf;
+  }
+
+  &:disabled {
+    background-color: #b5cdf0;
+    cursor: not-allowed;
+  }
+}

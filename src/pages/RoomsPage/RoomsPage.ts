@@ -1,7 +1,9 @@
 import './RoomsPage.scss'
 
 import { getRoomsList } from '@/api/rooms'
+import { createButton } from '@/components/Button/Button'
 import { createInputField } from '@/components/Input/Input'
+import { createRoomModal } from '@/components/Modal/CreateRoomModal/CreateRoomModal'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
 import { toast } from '@/components/Toast/Toast'
 import { debounce } from '@/utils/debounce'
@@ -95,7 +97,20 @@ export function renderRoomsPage() {
     }
   })
 
+  const createModal = createRoomModal()
+
+  const button = createButton({
+    text: 'Создать комнату',
+    size: 'm',
+    width: 'fit-content',
+    onCLick: () => {
+      createModal.open()
+    }
+  })
+  button.style.flexShrink = '0'
+
   roomsListFiltersEl.appendChild(searchField.element)
+  roomsListFiltersEl.appendChild(button)
 
   setRooms(roomsListEl, roomsListEmptyEl)
 

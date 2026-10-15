@@ -4,7 +4,7 @@ export interface RoomPayload {
 
 export interface RoomsPostResponse {
   success: boolean
-  room: RoomPayload
+  room: Room
 }
 
 export interface RoomsGetResponse {
