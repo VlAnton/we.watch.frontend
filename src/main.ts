@@ -3,8 +3,6 @@ import './style.css'
 import { renderAuthPage } from '@/pages/AuthPage/AuthPage'
 import { Router } from '@/router'
 
-import { User } from './api/auth'
-import { toast } from './components/Toast/Toast'
 import { renderRoomsPage } from './pages/RoomsPage/RoomsPage'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
@@ -15,19 +13,7 @@ router
     path: '/auth',
     title: 'Вход',
     render: () => {
-      return renderAuthPage({
-        onSuccess: (user: User) => {
-          toast.success(`Рады видеть вас снова, ${user.username}!`, {
-            title: 'Вход выполнен'
-          })
-          router.navigate('/rooms')
-        },
-        onError: (message) => {
-          toast.error(message, {
-            title: 'Ошибка авторизации'
-          })
-        }
-      })
+      return renderAuthPage()
     }
   })
   .addRoute({
@@ -35,7 +21,7 @@ router
     title: 'Мои комнаты',
     isProtected: true,
     render: () => {
-      return renderRoomsPage()
+      return renderRoomsPage({})
     }
   })
   .addRoute({

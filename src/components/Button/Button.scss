@@ -1,6 +1,6 @@
 .button {
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: 16px;
   font-size: 14px;
   font-weight: 500;
   color: #fff;
@@ -14,7 +14,7 @@
 
   &:hover {
     background-color: #6198f0;
-    transform: scale(105%);
+    transform: scale(1.03, 1.05);
   }
 
   &:active {

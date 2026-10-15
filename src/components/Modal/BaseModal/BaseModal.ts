@@ -8,6 +8,7 @@ import baseModalTemplate from './BaseModal.html?raw'
 export interface BaseModalProps {
   title: string
   content?: HTMLElement | string
+  closable?: boolean
   onClose?: () => void
   onOpen?: () => void
 }
@@ -21,7 +22,13 @@ export interface BaseModalInstance {
   destroy: () => void
 }
 
-export function createBaseModal(props: BaseModalProps): BaseModalInstance {
+export function createBaseModal({
+  title = '',
+  content = '',
+  closable = true,
+  onClose,
+  onOpen
+}: BaseModalProps): BaseModalInstance {
   const parser = new DOMParser()
   const doc = parser.parseFromString(baseModalTemplate, 'text/html')
   const root = doc.body.firstElementChild as HTMLElement
@@ -35,17 +42,20 @@ export function createBaseModal(props: BaseModalProps): BaseModalInstance {
   const backdrop = root.querySelector<HTMLElement>('.modal__backdrop')!
   const headerEl = root.querySelector<HTMLElement>('.modal__header')!
 
-  const closeBtnEl = createIconButton({
-    icon: closeSvg,
-    size: 'm',
-    onClick() {
-      close()
-    }
-  })
+  if (closable) {
+    const closeBtnEl = createIconButton({
+      icon: closeSvg,
+      size: 'm',
+      type: 'secondary',
+      onClick() {
+        close()
+      }
+    })
 
-  headerEl.appendChild(closeBtnEl)
+    headerEl.appendChild(closeBtnEl)
+  }
 
-  titleEl.textContent = props.title
+  titleEl.textContent = title
 
   const setContent = (content: HTMLElement | string) => {
     if (typeof content === 'string') {
@@ -56,8 +66,8 @@ export function createBaseModal(props: BaseModalProps): BaseModalInstance {
     }
   }
 
-  if (props.content) {
-    setContent(props.content)
+  if (content) {
+    setContent(content)
   }
 
   const open = () => {
@@ -68,14 +78,14 @@ export function createBaseModal(props: BaseModalProps): BaseModalInstance {
     root.classList.add('modal--open')
     root.setAttribute('aria-hidden', 'false')
     document.body.style.overflow = 'hidden'
-    props.onOpen?.()
+    onOpen?.()
   }
 
   const close = () => {
     root.classList.remove('modal--open')
     root.setAttribute('aria-hidden', 'true')
     document.body.style.overflow = ''
-    props.onClose?.()
+    onClose?.()
   }
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -84,8 +94,10 @@ export function createBaseModal(props: BaseModalProps): BaseModalInstance {
     }
   }
 
-  backdrop.addEventListener('click', close)
-  document.addEventListener('keydown', handleKeyDown)
+  if (closable) {
+    backdrop.addEventListener('click', close)
+    document.addEventListener('keydown', handleKeyDown)
+  }
 
   const destroy = () => {
     document.removeEventListener('keydown', handleKeyDown)

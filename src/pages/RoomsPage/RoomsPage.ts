@@ -1,6 +1,7 @@
 import './RoomsPage.scss'
 
 import { getRoomsList } from '@/api/rooms'
+import { Room } from '@/api/rooms/types'
 import { createButton } from '@/components/Button/Button'
 import { createInputField } from '@/components/Input/Input'
 import { createRoomModal } from '@/components/Modal/CreateRoomModal/CreateRoomModal'
@@ -10,7 +11,58 @@ import { debounce } from '@/utils/debounce'
 
 import roomsPageTemplate from './RoomsPage.html?raw'
 
+interface RoomsPageProps {
+  isMocked?: boolean
+}
+
+const mockedRooms: Room[] = [
+  {
+    code: 'mocked-code',
+    createdAt: new Date().toLocaleDateString(),
+    createdBy: 1,
+    id: 1,
+    name: 'белиберда'
+  },
+  {
+    code: 'mocked-code',
+    createdAt: new Date().toLocaleDateString(),
+    createdBy: 1,
+    id: 1,
+    name: 'белиберда'
+  },
+  {
+    code: 'mocked-code',
+    createdAt: new Date().toLocaleDateString(),
+    createdBy: 1,
+    id: 1,
+    name: 'белиберда'
+  }
+]
+
 let lastRequestId = 0
+
+function setMockData(roomsListEl: HTMLElement) {
+  const mockedRoomCards = createMockedRoomCards()
+  mockedRoomCards.forEach((mr) => {
+    roomsListEl.appendChild(mr)
+  })
+}
+
+function createMockedRoomCards() {
+  const mockedRoomCards = []
+  for (const room of mockedRooms) {
+    const roomCard = document.createElement('a')
+    roomCard.classList.add('rooms-page__room-card')
+
+    const roomCardTitle = document.createElement('h3')
+    roomCardTitle.textContent = room.name
+    roomCardTitle.classList.add('rooms-page__room-card-title')
+
+    roomCard.appendChild(roomCardTitle)
+    mockedRoomCards.push(roomCard)
+  }
+  return mockedRoomCards
+}
 
 function setRooms(
   roomsListEl: HTMLElement,
@@ -59,7 +111,7 @@ function setRooms(
     })
 }
 
-export function renderRoomsPage() {
+export function renderRoomsPage(props: RoomsPageProps) {
   const parser = new DOMParser()
   const doc = parser.parseFromString(roomsPageTemplate, 'text/html')
   const pageRoot = doc.body.firstElementChild as HTMLElement
@@ -111,6 +163,11 @@ export function renderRoomsPage() {
 
   roomsListFiltersEl.appendChild(searchField.element)
   roomsListFiltersEl.appendChild(button)
+
+  if (props.isMocked) {
+    setMockData(roomsListEl)
+    return pageRoot
+  }
 
   setRooms(roomsListEl, roomsListEmptyEl)
 

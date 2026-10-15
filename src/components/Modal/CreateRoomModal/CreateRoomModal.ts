@@ -32,14 +32,22 @@ export function createRoomModal() {
   root.appendChild(submitBtnEl)
   modalInputs.appendChild(nameInputEl.element)
 
+  const modalEl = createBaseModal({
+    title: 'создать комнату',
+    content: root
+  })
+
   root.addEventListener('submit', async (event: Event) => {
     event.preventDefault()
 
     const name = nameInputEl.getValue()
-
     try {
       const { room } = await createRoom({ name })
       const url = `/rooms/${room.id}`
+      modalEl.close()
+      toast.success('Успех', {
+        title: `Комната ${room.name} успешно создана`
+      })
       router.navigate(url)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -48,11 +56,6 @@ export function createRoomModal() {
         title: 'Произошла ошибка при создании комнаты'
       })
     }
-  })
-
-  const modalEl = createBaseModal({
-    title: 'создать комнату',
-    content: root
   })
 
   return modalEl
