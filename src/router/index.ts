@@ -1,5 +1,6 @@
 import { getMe } from '@/api/auth'
 import { HttpError } from '@/api/error'
+import { createMainLayout, MainLayoutInstance } from '@/layouts/MainLayout/MainLayout'
 import { renderErrorPage } from '@/pages/Error/Error'
 
 import type { CleanupFn, Route, RouteParams } from './types'
@@ -8,9 +9,15 @@ export class Router {
   private routes: Route[] = []
   private rootElement: HTMLElement
   private currentCleanup: CleanupFn | null = null
+  private mainLayout: MainLayoutInstance
 
-  constructor(rootElement: HTMLElement) {
+  constructor(rootElement: HTMLElement, onLogout: () => void) {
     this.rootElement = rootElement
+
+    this.mainLayout = createMainLayout({
+      onLogout,
+      onNavigateHome: () => this.navigate('/')
+    })
 
     window.addEventListener('popstate', () => {
       this.handleRoute(window.location.pathname)
@@ -37,8 +44,6 @@ export class Router {
   }
 
   public navigate(url: string): void {
-    if (window.location.pathname + window.location.search === url) return
-
     window.history.pushState({}, '', url)
     this.handleRoute(window.location.pathname)
   }
@@ -48,27 +53,22 @@ export class Router {
   }
 
   private matchRoute(pattern: string, path: string): RouteParams | null {
+    // Специфика для главной
+    if (pattern === '/' && path === '/') return {}
+
     const patternSegments = pattern.split('/').filter(Boolean)
     const pathSegments = path.split('/').filter(Boolean)
 
-    if (patternSegments.length !== pathSegments.length) {
-      return null
-    }
+    if (patternSegments.length !== pathSegments.length) return null
 
     const params: RouteParams = {}
-
     for (let i = 0; i < patternSegments.length; i++) {
-      const pSeg = patternSegments[i]
-      const actualSeg = pathSegments[i]
-
-      if (pSeg.startsWith(':')) {
-        const paramName = pSeg.slice(1)
-        params[paramName] = decodeURIComponent(actualSeg)
-      } else if (pSeg !== actualSeg) {
+      if (patternSegments[i].startsWith(':')) {
+        params[patternSegments[i].slice(1)] = decodeURIComponent(pathSegments[i])
+      } else if (patternSegments[i] !== pathSegments[i]) {
         return null
       }
     }
-
     return params
   }
 
@@ -116,13 +116,25 @@ export class Router {
     const searchParams = new URLSearchParams(window.location.search)
     const result = matchedRoute.render({ params, query: searchParams })
 
-    if (result instanceof HTMLElement) {
-      this.rootElement.appendChild(result)
+    const pageElement = result instanceof HTMLElement ? result : result.element
+
+    if (!pageElement) {
+      console.warn('Страница ничего не вернула в render()!', matchedRoute.path)
+      return
+    }
+    if (!(result instanceof HTMLElement) && result.cleanup) {
+      this.currentCleanup = result.cleanup
+    }
+
+    const targetLayout = matchedRoute.layout ?? 'main'
+
+    if (targetLayout === 'main') {
+      this.rootElement.innerHTML = ''
+      this.rootElement.appendChild(this.mainLayout.element)
+      this.mainLayout.setContent(pageElement)
     } else {
-      this.rootElement.appendChild(result.element)
-      if (result.cleanup) {
-        this.currentCleanup = result.cleanup
-      }
+      this.rootElement.innerHTML = ''
+      this.rootElement.appendChild(pageElement)
     }
   }
 }

@@ -3,15 +3,20 @@ import './style.css'
 import { renderAuthPage } from '@/pages/AuthPage/AuthPage'
 import { Router } from '@/router'
 
+import { logoutUser } from './api/auth'
 import { renderRoomsPage } from './pages/RoomsPage/RoomsPage'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
-export const router = new Router(app)
+export const router = new Router(app, () => {
+  logoutUser()
+  router.navigate('/auth')
+})
 
 router
   .addRoute({
     path: '/auth',
     title: 'Вход',
+    layout: 'main',
     render: () => {
       return renderAuthPage()
     }
@@ -20,6 +25,7 @@ router
     path: '/rooms',
     title: 'Мои комнаты',
     isProtected: true,
+    layout: 'main',
     render: () => {
       return renderRoomsPage({})
     }

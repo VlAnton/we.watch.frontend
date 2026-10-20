@@ -7,7 +7,7 @@ import buttonTemplate from './IconButton.html?raw'
 interface ButtonProps<TData = void> {
   icon: string | SVGElement | HTMLElement
   size?: 's' | 'm' | 'l'
-  type?: 'primary' | 'secondary'
+  type?: 'primary' | 'secondary' | 'secondary-altered'
   onClick?: (event?: MouseEvent) => void | Promise<TData>
 }
 
@@ -51,6 +51,8 @@ export function createIconButton(props: ButtonProps) {
     case 'secondary':
       buttonRoot.style.backgroundColor = '#ff45e6'
       break
+    case 'secondary-altered':
+      buttonRoot.style.backgroundColor = '#f3b9eb'
   }
 
   if (props.onClick) buttonRoot.addEventListener('click', props.onClick)

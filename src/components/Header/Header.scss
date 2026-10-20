@@ -1,0 +1,66 @@
+.app-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: $background-primary;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid $border;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  &__container {
+    width: 100%;
+    padding: 12px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__logo {
+    color: $logo;
+    user-select: none;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 20px;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.85;
+    }
+
+    &-icon {
+      font-size: 24px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+  }
+
+  &__logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #ff5252;
+      border-color: #ff5252;
+      background: rgba(255, 82, 82, 0.1);
+    }
+  }
+
+  &__logout-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
