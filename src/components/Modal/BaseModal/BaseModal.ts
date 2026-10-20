@@ -46,7 +46,7 @@ export function createBaseModal({
     const closeBtnEl = createIconButton({
       icon: closeSvg,
       size: 'm',
-      type: 'secondary',
+      type: 'primary',
       onClick() {
         close()
       }

@@ -1,8 +1,9 @@
 .icon-button {
+  flex-shrink: 0;
   border-radius: 16px;
   font-size: 14px;
   font-weight: 500;
-  color: $background-primary;
+  color: #407ddf;
   cursor: pointer;
   transition:
     background-color 0.2s ease,

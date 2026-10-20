@@ -1,0 +1,11 @@
+.confirm-modal {
+  display: flex;
+  gap: 16px;
+  height: 100%;
+
+  &__submit-actions {
+    width: 100%;
+    display: flex;
+    gap: 16px;
+  }
+}

@@ -3,13 +3,14 @@ import './style.css'
 import { renderAuthPage } from '@/pages/AuthPage/AuthPage'
 import { Router } from '@/router'
 
-import { logoutUser } from './api/auth'
+import { createLogoutModal } from './components/Modal/LogoutModal/LogoutModal'
 import { renderRoomsPage } from './pages/RoomsPage/RoomsPage'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 export const router = new Router(app, () => {
-  logoutUser()
-  router.navigate('/auth')
+  const modalEl = createLogoutModal()
+  app.appendChild(modalEl.element)
+  modalEl.open()
 })
 
 router

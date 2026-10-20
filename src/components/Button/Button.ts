@@ -5,6 +5,7 @@ import buttonTemplate from './Button.html?raw'
 interface ButtonProps<TData = void> {
   text: string
   size?: 's' | 'm' | 'l'
+  type?: 'primary' | 'secondary' | 'secondary-altered' | 'transparent'
   width?: string
   onCLick?: (event?: MouseEvent) => void | Promise<TData>
 }
@@ -21,11 +22,33 @@ export function createButton(props: ButtonProps) {
         break
       case 'm':
         buttonRoot.style.height = '45px'
+        buttonRoot.style.fontSize = '16px'
+        buttonRoot.style.fontWeight = '600'
         break
       case 'l':
         buttonRoot.style.height = '65px'
+        buttonRoot.style.fontSize = '18px'
+        buttonRoot.style.fontWeight = '700'
         break
     }
+  }
+
+  switch (props.type) {
+    case 'primary':
+      buttonRoot.style.backgroundColor = '#407ddf'
+      buttonRoot.style.color = '#fff'
+      break
+    case 'secondary':
+      buttonRoot.style.backgroundColor = '#ff45e6'
+      buttonRoot.style.color = '#fff'
+      break
+    case 'secondary-altered':
+      buttonRoot.style.backgroundColor = '#f3b9eb'
+      buttonRoot.style.color = '#fff'
+      break
+    case 'transparent':
+      buttonRoot.style.backgroundColor = 'transparent'
+      buttonRoot.style.color = '#3c7eea'
   }
 
   if (props.width) {

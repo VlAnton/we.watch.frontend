@@ -20,7 +20,7 @@ export function createHeader(props: HeaderProps = {}): HTMLElement {
   const logoutBtn = createIconButton({
     icon: logoutSvg,
     size: 'm',
-    type: 'secondary-altered',
+    type: 'transparent',
     onClick: props.onLogout
   })
 
