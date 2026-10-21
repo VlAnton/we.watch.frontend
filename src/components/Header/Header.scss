@@ -1,6 +1,7 @@
 .app-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   width: 100%;
   background-color: $background-primary;
   backdrop-filter: blur(12px);
@@ -10,6 +11,7 @@
   z-index: 100;
 
   &__container {
+    max-width: min(1920px, 100%);
     width: 100%;
     padding: 12px 40px;
     display: flex;

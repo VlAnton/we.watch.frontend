@@ -1,9 +1,12 @@
-import './style.css'
+import './style.scss'
+import '@/assets/styles/classes.scss'
 
 import { renderAuthPage } from '@/pages/AuthPage/AuthPage'
 import { Router } from '@/router'
 
 import { createLogoutModal } from './components/Modal/LogoutModal/LogoutModal'
+import { renderMoviesPage } from './pages/MoviesPage/MoviesPage'
+import { renderRoomDetailsPage } from './pages/RoomDetailsPage/RoomDetailsPage'
 import { renderRoomsPage } from './pages/RoomsPage/RoomsPage'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
@@ -35,18 +38,15 @@ router
     path: '/rooms/:id',
     title: 'Комната совместного просмотра',
     isProtected: true,
-    render: ({ params }) => {
-      const el = document.createElement('div')
-      el.innerHTML = `
-        <h1>Комната #${params.id}</h1>
-        <a href="/rooms">← Назад к комнатам</a>
-      `
-
-      const cleanup = () => {
-        console.log(`Покинули комнату ${params.id}`)
-      }
-
-      return { element: el, cleanup }
+    render: () => {
+      return renderRoomDetailsPage()
+    }
+  })
+  .addRoute({
+    path: '/movies',
+    title: 'Фильмы',
+    render: () => {
+      return renderMoviesPage()
     }
   })
   .addRoute({

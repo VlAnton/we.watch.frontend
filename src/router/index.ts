@@ -7,11 +7,12 @@ import type { CleanupFn, Route, RouteParams } from './types'
 
 export class Router {
   private routes: Route[] = []
-  private rootElement: HTMLElement
+  private rootElement: HTMLElement | Promise<HTMLElement>
   private currentCleanup: CleanupFn | null = null
   private mainLayout: MainLayoutInstance
+  private activeParams: Record<string, string> = {}
 
-  constructor(rootElement: HTMLElement, onLogout: () => void) {
+  constructor(rootElement: HTMLElement | Promise<HTMLElement>, onLogout: () => void) {
     this.rootElement = rootElement
 
     this.mainLayout = createMainLayout({
@@ -36,6 +37,10 @@ export class Router {
         this.navigate(target.pathname + target.search)
       }
     })
+  }
+
+  public get params(): Record<string, string> {
+    return this.activeParams
   }
 
   public addRoute(route: Route): this {
@@ -85,11 +90,10 @@ export class Router {
       }
     }
 
+    const root = await this.rootElement
+
     if (!matchedRoute) {
-      renderErrorPage(
-        this.rootElement as HTMLDivElement,
-        new HttpError(404, 'Страница не найдена')
-      )
+      renderErrorPage(root as HTMLDivElement, new HttpError(404, 'Страница не найдена'))
       return
     }
 
@@ -102,6 +106,8 @@ export class Router {
       }
     }
 
+    this.activeParams = params
+
     if (this.currentCleanup) {
       this.currentCleanup()
       this.currentCleanup = null
@@ -111,10 +117,12 @@ export class Router {
       document.title = `${matchedRoute.title} | We.Watch`
     }
 
-    this.rootElement.innerHTML = ''
+    if (root) {
+      root.innerHTML = ''
+    }
 
     const searchParams = new URLSearchParams(window.location.search)
-    const result = matchedRoute.render({ params, query: searchParams })
+    const result = await matchedRoute.render({ params, query: searchParams })
 
     const pageElement = result instanceof HTMLElement ? result : result.element
 
@@ -129,12 +137,12 @@ export class Router {
     const targetLayout = matchedRoute.layout ?? 'main'
 
     if (targetLayout === 'main') {
-      this.rootElement.innerHTML = ''
-      this.rootElement.appendChild(this.mainLayout.element)
+      root.innerHTML = ''
+      root.appendChild(this.mainLayout.element)
       this.mainLayout.setContent(pageElement)
     } else {
-      this.rootElement.innerHTML = ''
-      this.rootElement.appendChild(pageElement)
+      root.innerHTML = ''
+      root.appendChild(pageElement)
     }
   }
 }

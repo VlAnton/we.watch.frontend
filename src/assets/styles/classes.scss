@@ -1,0 +1,65 @@
+.page {
+  padding: 24px 40px;
+  max-width: min(1920px, 100%);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  &__title {
+    text-transform: lowercase;
+    font-size: 32px;
+    color: #ff45e6;
+    margin: 0;
+  }
+}
+
+.link {
+  color: $text-primary;
+  text-decoration: none;
+
+  &__s {
+    font-size: 16px;
+  }
+
+  &__m {
+    font-size: 18px;
+  }
+
+  &__l {
+    font-size: 22px;
+  }
+
+  &__breadcrumb {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &::before {
+      content: '<';
+      padding: 4px;
+    }
+  }
+}
+
+.card {
+  text-decoration: none;
+
+  border-radius: 24px;
+  border: 1px solid $border;
+
+  transition:
+    box-shadow,
+    transform ease 0.2s;
+
+  &:hover {
+    transform: scale(1.01, 1.03);
+    box-shadow: 0 9px 26px -7px rgba(205, 74, 188, 0.5);
+  }
+
+  &__title {
+    color: #3c7eea;
+    margin: 0;
+  }
+}

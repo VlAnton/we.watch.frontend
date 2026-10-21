@@ -16,5 +16,9 @@ export interface Route {
   isProtected?: boolean
   render: (
     ctx: RouteContext
-  ) => HTMLElement | { element: HTMLElement; cleanup?: CleanupFn }
+  ) =>
+    | HTMLElement
+    | { element: HTMLElement; cleanup?: CleanupFn }
+    | Promise<HTMLElement>
+    | Promise<{ element: HTMLElement; cleanup?: CleanupFn }>
 }

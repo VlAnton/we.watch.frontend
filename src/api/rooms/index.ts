@@ -1,7 +1,12 @@
 import { apiFetch } from '../client'
-import { RoomPayload, RoomsGetResponse, RoomsPostResponse } from './types'
+import {
+  RoomDetailsResponse,
+  RoomPayload,
+  RoomsGetResponse,
+  RoomsPostResponse
+} from './types'
 
-export async function createRoom(payload: RoomPayload) {
+export function createRoom(payload: RoomPayload) {
   return apiFetch<RoomsPostResponse>('/api/rooms/', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -11,7 +16,7 @@ export async function createRoom(payload: RoomPayload) {
   })
 }
 
-export async function getRoomsList(query: string) {
+export function getRoomsList(query: string) {
   const params = new URLSearchParams()
   const trimmed = query.trim()
 
@@ -21,4 +26,15 @@ export async function getRoomsList(query: string) {
 
   const endpoint = `/api/rooms/my${params.toString() ? `?${params.toString()}` : ''}`
   return apiFetch<RoomsGetResponse>(endpoint)
+}
+
+export function getRoomDetails(roomId: number, query: string = '') {
+  const params = new URLSearchParams()
+  const trimmed = query.trim()
+
+  if (trimmed.length) {
+    params.set('query', trimmed)
+  }
+  const endpoint = `/api/rooms/${roomId}/watchlist${params.toString() ? `?${params.toString()}` : ''}`
+  return apiFetch<RoomDetailsResponse>(endpoint)
 }

@@ -133,9 +133,9 @@ export function renderRoomsPage(props: RoomsPageProps) {
   }, 400)
 
   const searchField = createInputField({
-    label: 'Поиск',
+    label: 'Название',
     name: 'search',
-    placeholder: 'Поиск по названию',
+    placeholder: 'Введите название комнаты',
     required: false,
     type: 'text',
     onInput(value) {
@@ -159,7 +159,6 @@ export function renderRoomsPage(props: RoomsPageProps) {
       createModal.open()
     }
   })
-  button.style.flexShrink = '0'
 
   roomsListFiltersEl.appendChild(searchField.element)
   roomsListFiltersEl.appendChild(button)
