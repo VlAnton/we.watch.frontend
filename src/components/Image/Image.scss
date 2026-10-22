@@ -5,7 +5,6 @@
   overflow: hidden;
   border-radius: 8px;
 
-  // Базовые свойства для обоих слоев картинок
   &__thumb,
   &__full {
     position: absolute;
@@ -15,10 +14,9 @@
     object-fit: cover;
   }
 
-  // 1. Слой миниатюры (w92)
   &__thumb {
     filter: blur(12px);
-    transform: scale(1.08); // Скрывает белые/пиксельные края размытия
+    transform: scale(1.08);
     transition: opacity 0.5s ease-out;
     z-index: 1;
 
@@ -28,7 +26,6 @@
     }
   }
 
-  // 2. Слой четкого постера (w342 / w500)
   &__full {
     opacity: 0;
     transition: opacity 0.4s ease-in;
@@ -39,7 +36,6 @@
     }
   }
 
-  // Скелетон-подложка, пока скачивается даже миниатюра w92
   &__shimmer {
     position: absolute;
     inset: 0;
