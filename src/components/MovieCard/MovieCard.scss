@@ -1,13 +1,15 @@
 .movie-card {
   display: flex;
   flex-direction: column;
+  min-height: 636px;
   gap: 20px;
   align-items: center;
   padding: 32px 32px 40px;
 
-  &__img {
-    object-fit: cover;
-    width: calc(100% - 32px);
+  &__img-container {
+    flex-shrink: 0;
+    flex-grow: 1;
+    width: 100%;
   }
 
   &__title {

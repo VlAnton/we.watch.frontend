@@ -1,8 +1,8 @@
 import './MovieCard.scss'
 
 import { MovieItem } from '@/api/films/types'
-import { config } from '@/config'
 
+import { createPoster } from '../Image/Image'
 import movieCardTemplate from './MovieCard.html?raw'
 
 type MovieCardProps = MovieItem
@@ -13,10 +13,17 @@ export function createMovieCard(props: MovieCardProps) {
   const movieCardEl = doc.body.firstElementChild as HTMLElement
 
   const cardTitle = movieCardEl.querySelector<HTMLElement>('.card__title')!
-  const cardImg = movieCardEl.querySelector<HTMLImageElement>('.movie-card__img')!
+  const cardImgContainer = movieCardEl.querySelector<HTMLElement>(
+    '.movie-card__img-container'
+  )!
+  const posterElement = createPoster({
+    posterPath: props.posterPath,
+    title: props.title,
+    targetSize: 'w342'
+  })
 
   cardTitle.innerHTML = props.title
-  cardImg.src = `${config.images.tmdbBaseUrl}/${config.images.posterSmall}${props.posterPath}`
+  cardImgContainer.appendChild(posterElement)
 
   return movieCardEl
 }

@@ -15,10 +15,8 @@ async function setMovies(
   query: string = ''
 ) {
   const { results } = await getMovies(query)
-  if (!results.length) {
-    return
-  }
   moviesListEl.innerHTML = ''
+
   results.forEach((movieItem) => {
     const card = createMovieCard({
       ...movieItem
@@ -31,7 +29,7 @@ async function setMovies(
     pageEmptyEl.style.display = 'none'
   } else {
     moviesListEl.style.display = 'none'
-    pageEmptyEl.style.display = 'grid'
+    pageEmptyEl.style.display = 'flex'
   }
 }
 
@@ -50,7 +48,6 @@ export async function renderMoviesPage() {
   const skeleton = createSkeleton({ size: 'l' })
 
   const handleSearch = debounce((query: string) => {
-    console.log(query)
     setMovies(moviesListEl, pageEmptyEl, query)
   }, 400)
 
@@ -63,7 +60,7 @@ export async function renderMoviesPage() {
     onInput(value) {
       pageEmptyEl.style.display = 'none'
       moviesListEl.style.display = 'grid'
-      skeleton.style.height = '100%'
+      skeleton.style.height = '636px'
       moviesListEl.innerHTML = `
         ${skeleton.outerHTML}
         ${skeleton.outerHTML}
