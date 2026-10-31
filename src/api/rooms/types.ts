@@ -32,3 +32,12 @@ export interface RoomWatchlistItem extends MovieItem {
   addedByUsername: string
   createdAt: string
 }
+
+export interface RoomWithMovies extends Room {
+  watchlist: RoomWatchlistItem[]
+}
+
+export interface RoomAddMovieItem {
+  success: boolean
+  item: MovieItem
+}

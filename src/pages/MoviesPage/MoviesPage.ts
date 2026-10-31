@@ -1,15 +1,26 @@
 import './MoviesPage.scss'
 
 import { getMovies } from '@/api/films'
+import { getUserRoomsWithMovies } from '@/api/rooms'
+import { RoomWithMovies } from '@/api/rooms/types'
 import { createInputField } from '@/components/Input/Input'
 import { createMovieCard } from '@/components/MovieCard/MovieCard'
+import { MovieCard } from '@/components/MovieCard/types'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
 import { toast } from '@/components/Toast/Toast'
+import { router } from '@/main'
 import { debounce } from '@/utils/debounce'
 
 import pageTemplate from './MoviesPage.html?raw'
 
 export async function renderMoviesPage() {
+  let activeRooms: RoomWithMovies[] = []
+
+  function updateAllCardsRooms(card: MovieCard, freshRooms: RoomWithMovies[]) {
+    activeRooms = freshRooms
+    card.updateRooms(freshRooms)
+  }
+
   function showInitialSkeletons() {
     pageEmptyEl.style.display = 'none'
     sentinelEl.style.display = 'none'
@@ -59,9 +70,15 @@ export async function renderMoviesPage() {
 
       const fragment = document.createDocumentFragment()
       data.results.forEach((movieItem) => {
-        const card = createMovieCard({ ...movieItem })
-        card.style.maxWidth = 'calc(100%)'
-        fragment.appendChild(card)
+        const card = createMovieCard({
+          ...movieItem,
+          showContextMenu: !router.params.roomId,
+          rooms: activeRooms,
+          onRoomsUpdate: function (rooms: RoomWithMovies[]) {
+            updateAllCardsRooms(card, rooms)
+          }
+        })
+        fragment.appendChild(card.element)
       })
       moviesListEl.appendChild(fragment)
 
@@ -135,7 +152,35 @@ export async function renderMoviesPage() {
   })
   pageFiltersEl.appendChild(searchField.element)
 
-  fetchMovies(true)
+  moviesListEl.addEventListener('mouseenter', (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null
+
+    const currentCard = target?.closest<HTMLElement>('.movie-card')
+    if (!currentCard) {
+      return
+    }
+    const contextMenu = currentCard.querySelector<HTMLElement>(
+      '.movie-card__context-menu'
+    )!
+    if (!contextMenu) {
+      return
+    }
+    contextMenu.style.visibility = 'visible'
+  })
+  moviesListEl.addEventListener('mouseleave', (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null
+    const currentCard = target?.closest<HTMLElement>('.movie-card')
+    if (!currentCard || !moviesListEl.contains(currentCard)) return
+
+    const related = event.relatedTarget as Node | null
+
+    if (related && currentCard.contains(related)) {
+      return
+    }
+  })
+
+  activeRooms = await getUserRoomsWithMovies()
+  await fetchMovies(true)
 
   return {
     element: pageRoot,

@@ -35,7 +35,7 @@ router
     }
   })
   .addRoute({
-    path: '/rooms/:id',
+    path: '/rooms/:roomId',
     title: 'Комната совместного просмотра',
     isProtected: true,
     render: () => {
@@ -44,6 +44,13 @@ router
   })
   .addRoute({
     path: '/movies',
+    title: 'Фильмы',
+    render: () => {
+      return renderMoviesPage()
+    }
+  })
+  .addRoute({
+    path: '/rooms/:roomId/movies',
     title: 'Фильмы',
     render: () => {
       return renderMoviesPage()

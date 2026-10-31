@@ -16,7 +16,7 @@ async function setWatchList(
   pageTitleEl: HTMLElement,
   query: string = ''
 ) {
-  const roomDetailsData = await getRoomDetails(parseInt(router.params.id), query)
+  const roomDetailsData = await getRoomDetails(parseInt(router.params.roomId), query)
   const roomWatchlist = roomDetailsData.watchlist
   if (roomWatchlist.length > 0) {
     pageWatchlistEl.style.display = 'flex'
@@ -67,17 +67,17 @@ export async function renderRoomDetailsPage() {
       handleSearch(value)
     }
   })
-  const toMoviesCatatlogBtn = createButton({
+  const toMoviesCatalogBtn = createButton({
     text: 'добавить фильм',
     size: 'm',
     type: 'primary',
     width: 'fit-content',
     onCLick: () => {
-      router.navigate('/movies')
+      router.navigate(`/rooms/${router.params.roomId}/movies`)
     }
   })
   pageFiltersEl.appendChild(searchField.element)
-  pageFiltersEl.appendChild(toMoviesCatatlogBtn)
+  pageFiltersEl.appendChild(toMoviesCatalogBtn)
 
   try {
     await setWatchList(pageWatchlistEl, pageEmptyEl, pageTitleEl)

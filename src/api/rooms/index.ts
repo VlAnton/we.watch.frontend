@@ -1,9 +1,12 @@
 import { apiFetch } from '../client'
+import { MovieItem } from '../films/types'
 import {
+  RoomAddMovieItem,
   RoomDetailsResponse,
   RoomPayload,
   RoomsGetResponse,
-  RoomsPostResponse
+  RoomsPostResponse,
+  RoomWithMovies
 } from './types'
 
 export function createRoom(payload: RoomPayload) {
@@ -16,9 +19,9 @@ export function createRoom(payload: RoomPayload) {
   })
 }
 
-export function getRoomsList(query: string) {
+export function getRoomsList(query?: string) {
   const params = new URLSearchParams()
-  const trimmed = query.trim()
+  const trimmed = query?.trim() ?? ''
 
   if (trimmed.length) {
     params.set('query', trimmed)
@@ -26,6 +29,10 @@ export function getRoomsList(query: string) {
 
   const endpoint = `/api/rooms/my${params.toString() ? `?${params.toString()}` : ''}`
   return apiFetch<RoomsGetResponse>(endpoint)
+}
+
+export function getUserRoomsWithMovies() {
+  return apiFetch<RoomWithMovies[]>('/api/rooms/my/with-movies')
 }
 
 export function getRoomDetails(roomId: number, query: string = '') {
@@ -37,4 +44,14 @@ export function getRoomDetails(roomId: number, query: string = '') {
   }
   const endpoint = `/api/rooms/${roomId}/watchlist${params.toString() ? `?${params.toString()}` : ''}`
   return apiFetch<RoomDetailsResponse>(endpoint)
+}
+
+export function addToWatchlist(payload: MovieItem, roomId?: number) {
+  return apiFetch<RoomAddMovieItem>(`/api/rooms/${roomId}/watchlist`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
 }

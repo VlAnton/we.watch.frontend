@@ -8,7 +8,6 @@ interface ButtonProps<TData = void> {
   icon: string | SVGElement | HTMLElement
   size?: 's' | 'm' | 'l'
   type?: 'primary' | 'secondary' | 'secondary-altered' | 'transparent'
-  iconColor?: 'white' | 'colored'
   onClick?: (event?: MouseEvent) => void | Promise<TData>
 }
 
@@ -34,6 +33,7 @@ export function createIconButton(props: ButtonProps) {
     case 's':
       buttonRoot.style.height = '30px'
       buttonRoot.style.width = '30px'
+      buttonRoot.style.borderRadius = '8px'
       break
     case 'm':
       buttonRoot.style.height = '40px'
