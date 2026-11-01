@@ -15,6 +15,7 @@ import pageTemplate from './MoviesPage.html?raw'
 
 export async function renderMoviesPage() {
   let activeRooms: RoomWithMovies[] = []
+  const currentRoomId = parseInt(router.params.roomId, 10)
 
   function updateAllCardsRooms(card: MovieCard, freshRooms: RoomWithMovies[]) {
     activeRooms = freshRooms
@@ -72,7 +73,7 @@ export async function renderMoviesPage() {
       data.results.forEach((movieItem) => {
         const card = createMovieCard({
           ...movieItem,
-          showContextMenu: !router.params.roomId,
+          showContextMenu: !currentRoomId,
           rooms: activeRooms,
           onRoomsUpdate: function (rooms: RoomWithMovies[]) {
             updateAllCardsRooms(card, rooms)
@@ -118,7 +119,7 @@ export async function renderMoviesPage() {
   let lastRequestId = 0
 
   const skeleton = createSkeleton({ size: 'l' })
-  skeleton.style.height = '636px'
+  skeleton.style.height = '500px'
 
   const observer = new IntersectionObserver(
     (entries) => {
@@ -181,6 +182,23 @@ export async function renderMoviesPage() {
 
   activeRooms = await getUserRoomsWithMovies()
   await fetchMovies(true)
+
+  if (currentRoomId) {
+    const currentRoom = activeRooms.find((room) => room.id === currentRoomId)
+    const currentRoomName = currentRoom?.name.toLowerCase()
+    pageTitleEl.textContent = currentRoom
+      ? `поиск фильмов для комнаты «${currentRoomName}»`
+      : pageTitleEl.textContent
+
+    const breadcrumbsEl = pageRoot.querySelector<HTMLElement>('.breadcrumbs')!
+    const roomBreadcrumb = document.createElement('a')
+    roomBreadcrumb.classList.add('link', 'link__sm', 'link__breadcrumb')
+    roomBreadcrumb.href = `/rooms/${currentRoom?.id}`
+    roomBreadcrumb.textContent = currentRoomName ?? ''
+    if (currentRoom) {
+      breadcrumbsEl.appendChild(roomBreadcrumb)
+    }
+  }
 
   return {
     element: pageRoot,

@@ -29,7 +29,7 @@ export function createInputField(props: InputFieldProps): InputFieldInstance {
   const root = doc.body.firstElementChild as HTMLElement
 
   if (!root) {
-    throw new Error('Не удалось спарсить шаблон InputField')
+    throw new Error('не удалось спарсить шаблон InputField')
   }
 
   let labelEl

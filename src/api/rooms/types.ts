@@ -32,6 +32,10 @@ export interface Room {
 }
 
 export interface RoomWatchlistItem extends MovieItem {
+  id: number
+  movieId: number
+  title: string
+  posterPath: string
   status: 'to_watch' | 'watched'
   addedBy: number
   addedByUsername: string

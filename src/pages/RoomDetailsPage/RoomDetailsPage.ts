@@ -3,6 +3,7 @@ import './RoomDetailsPage.scss'
 import { getRoomDetails } from '@/api/rooms'
 import { createButton } from '@/components/Button/Button'
 import { createInputField } from '@/components/Input/Input'
+import { createMovieCard } from '@/components/MovieCard/MovieCard'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
 import { toast } from '@/components/Toast/Toast'
 import { router } from '@/main'
@@ -16,15 +17,33 @@ async function setWatchList(
   pageTitleEl: HTMLElement,
   query: string = ''
 ) {
-  const roomDetailsData = await getRoomDetails(parseInt(router.params.roomId), query)
+  const roomId = parseInt(router.params.roomId, 10)
+  const roomDetailsData = await getRoomDetails(roomId, query)
   const roomWatchlist = roomDetailsData.watchlist
   if (roomWatchlist.length > 0) {
-    pageWatchlistEl.style.display = 'flex'
+    pageWatchlistEl.innerHTML = ''
+    pageWatchlistEl.style.display = 'grid'
     pageEmptyEl.style.display = 'none'
-    pageWatchlistEl.textContent = roomWatchlist.toString()
+    roomWatchlist.forEach((movie) => {
+      const movieCard = createMovieCard({
+        ...movie,
+        showContextMenu: false,
+        deleteOnly: true,
+        onRoomsUpdate() {
+          setWatchList(pageWatchlistEl, pageEmptyEl, pageTitleEl, query)
+        }
+      })
+      pageWatchlistEl.appendChild(movieCard.element)
+    })
   } else {
     pageWatchlistEl.style.display = 'none'
     pageEmptyEl.style.display = 'flex'
+    if (query.length > 0) {
+      const pageEmotyTextEl = pageEmptyEl.querySelector<HTMLElement>(
+        '.room-details-page__empty-text'
+      )!
+      pageEmotyTextEl.textContent = `по запросу «${query}» ничего не найдено`
+    }
   }
   pageTitleEl.textContent = roomDetailsData.room.name
 }
@@ -58,8 +77,9 @@ export async function renderRoomDetailsPage() {
     onInput(value) {
       pageEmptyEl.style.display = 'none'
       pageWatchlistEl.style.display = 'grid'
-      skeleton.style.height = '100%'
+      skeleton.style.height = '500px'
       pageWatchlistEl.innerHTML = `
+        ${skeleton.outerHTML}
         ${skeleton.outerHTML}
         ${skeleton.outerHTML}
         ${skeleton.outerHTML}

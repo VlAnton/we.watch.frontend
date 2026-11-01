@@ -14,6 +14,7 @@ import movieCardTemplate from './MovieCard.html?raw'
 
 interface MovieCardProps extends MovieItem {
   showContextMenu: boolean
+  deleteOnly?: boolean
   rooms?: RoomWithMovies[]
   onRoomsUpdate?: (updatedRooms: RoomWithMovies[]) => void
 }
@@ -72,7 +73,6 @@ export function createMovieCard(props: MovieCardProps) {
     targetSize: 'w342'
   })
 
-  // Локальная ссылка на комнаты текущей карточки
   let currentRooms = props.rooms ?? []
   const currentRoomId = parseInt(router.params.roomId, 10)
   let isMovieInTheCurrentRoom = getIsMovieInTheRoom(currentRoomId)
@@ -82,7 +82,7 @@ export function createMovieCard(props: MovieCardProps) {
   contextMenu.style.display = 'none'
 
   const addBtn = createIconButton({
-    icon: isMovieInTheCurrentRoom ? closeIconSvg : plusIconSvg,
+    icon: isMovieInTheCurrentRoom || props.deleteOnly ? closeIconSvg : plusIconSvg,
     size: 's',
     type: 'primary',
     onClick() {
@@ -91,7 +91,7 @@ export function createMovieCard(props: MovieCardProps) {
         contextMenu.style.display = 'flex'
         return
       }
-      if (isMovieInTheCurrentRoom) {
+      if (isMovieInTheCurrentRoom || props.deleteOnly) {
         removeFromWatchlist(currentRoomId, props.movieId)
           .then(async (res) => {
             await actionCallback(
