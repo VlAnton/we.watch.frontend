@@ -52,7 +52,7 @@ export function createBaseModal({
       }
     })
 
-    headerEl.appendChild(closeBtnEl)
+    headerEl.appendChild(closeBtnEl.element)
   }
 
   titleEl.textContent = title

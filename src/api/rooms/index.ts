@@ -4,6 +4,7 @@ import {
   RoomAddMovieItem,
   RoomDetailsResponse,
   RoomPayload,
+  RoomsDeleteResponse,
   RoomsGetResponse,
   RoomsPostResponse,
   RoomWithMovies
@@ -53,5 +54,11 @@ export function addToWatchlist(payload: MovieItem, roomId?: number) {
     headers: {
       'Content-Type': 'application/json'
     }
+  })
+}
+
+export function removeFromWatchlist(roomId: number, movieId: number) {
+  return apiFetch<RoomsDeleteResponse>(`/api/rooms/${roomId}/watchlist/${movieId}`, {
+    method: 'DELETE'
   })
 }

@@ -33,7 +33,7 @@ export function createHeader(props: HeaderProps = {}): HTMLElement {
     }
   })
 
-  headerActionsEl.appendChild(logoutBtn)
+  headerActionsEl.appendChild(logoutBtn.element)
 
   return header
 }

@@ -1,12 +1,13 @@
 import './MovieCard.scss'
 
 import { MovieItem } from '@/api/films/types'
-import { addToWatchlist, getUserRoomsWithMovies } from '@/api/rooms'
+import { addToWatchlist, getUserRoomsWithMovies, removeFromWatchlist } from '@/api/rooms'
 import { RoomWithMovies } from '@/api/rooms/types'
+import closeIconSvg from '@/assets/icons/close.svg?raw'
 import plusIconSvg from '@/assets/icons/plus.svg?raw'
 import { router } from '@/main'
 
-import { createIconButton } from '../IconButton/IconButton'
+import { createIconButton, IconButton } from '../IconButton/IconButton'
 import { createPoster } from '../Image/Image'
 import { toast } from '../Toast/Toast'
 import movieCardTemplate from './MovieCard.html?raw'
@@ -18,6 +19,21 @@ interface MovieCardProps extends MovieItem {
 }
 
 export function createMovieCard(props: MovieCardProps) {
+  function getIsMovieInTheRoom(roomId: number) {
+    return !!currentRooms.find(
+      (room) =>
+        room.id === roomId &&
+        !!room.watchlist.find((movie) => props.movieId === movie.movieId)
+    )
+  }
+
+  async function actionCallback(btn: IconButton, icon: string, successText: string) {
+    toast.success(successText, { title: 'успех' })
+    const freshRooms = await getUserRoomsWithMovies()
+    props.onRoomsUpdate?.(freshRooms)
+    btn.setIcon(icon)
+  }
+
   function renderMenuItems() {
     contextMenu.innerHTML = ''
     const fragment = document.createDocumentFragment()
@@ -58,40 +74,60 @@ export function createMovieCard(props: MovieCardProps) {
 
   // Локальная ссылка на комнаты текущей карточки
   let currentRooms = props.rooms ?? []
+  const currentRoomId = parseInt(router.params.roomId, 10)
+  let isMovieInTheCurrentRoom = getIsMovieInTheRoom(currentRoomId)
 
   const contextMenu = document.createElement('div')
   contextMenu.classList.add('movie-card__context-menu')
   contextMenu.style.display = 'none'
 
   const addBtn = createIconButton({
-    icon: plusIconSvg,
+    icon: isMovieInTheCurrentRoom ? closeIconSvg : plusIconSvg,
     size: 's',
     type: 'primary',
     onClick() {
-      if (!props.showContextMenu) {
-        addToWatchlist(props, parseInt(router.params.roomId, 10))
-          .then(async (res) => {
-            toast.success(
-              `фильм «${res.item.title.toLowerCase()}» успешно добавлен в список для просмотра`,
-              { title: 'успех' }
-            )
-            const freshRooms = await getUserRoomsWithMovies()
-            props.onRoomsUpdate?.(freshRooms)
-          })
-          .catch((err) => {
-            toast.error(err.message, {
-              title: 'Ошибка добавления фильма'
-            })
-          })
+      if (props.showContextMenu) {
+        renderMenuItems()
+        contextMenu.style.display = 'flex'
         return
       }
-
-      renderMenuItems()
-      contextMenu.style.display = 'flex'
+      if (isMovieInTheCurrentRoom) {
+        removeFromWatchlist(currentRoomId, props.movieId)
+          .then(async (res) => {
+            await actionCallback(
+              addBtn,
+              plusIconSvg,
+              `фильм «${res.item.title.toLowerCase()}» успешно удален из списка для просмотра`
+            )
+          })
+          .catch((err) => {
+            toast.error(err.message.toLowerCase(), {
+              title: 'ошибка удаления фильма'
+            })
+          })
+      } else {
+        addToWatchlist(props, currentRoomId)
+          .then(async (res) => {
+            await actionCallback(
+              addBtn,
+              closeIconSvg,
+              `фильм «${res.item.title.toLowerCase()}» успешно добавлен в список для просмотра`
+            )
+          })
+          .catch((err) => {
+            toast.error(err.message.toLowerCase(), {
+              title: 'ошибка добавления фильма'
+            })
+          })
+      }
+      getUserRoomsWithMovies().then((res) => {
+        currentRooms = res
+        isMovieInTheCurrentRoom = getIsMovieInTheRoom(currentRoomId)
+      })
     }
   })
 
-  contextMenu.addEventListener('mouseleave', () => {
+  cardActions.addEventListener('mouseleave', () => {
     contextMenu.style.display = 'none'
   })
 
@@ -105,11 +141,16 @@ export function createMovieCard(props: MovieCardProps) {
 
     const roomId = parseInt(currentItem.id, 10)
     const roomName = currentItem.textContent || ''
+    const isMovieInTheRoom = getIsMovieInTheRoom(roomId)
 
     try {
-      const res = await addToWatchlist(props, roomId)
+      const res = isMovieInTheRoom
+        ? await removeFromWatchlist(roomId, props.movieId)
+        : await addToWatchlist(props, roomId)
       toast.success(
-        `фильм «${res.item.title.toLowerCase()}» успешно добавлен в список для просмотра комнаты ${roomName.toLowerCase()}`,
+        isMovieInTheRoom
+          ? `фильм «${res.item.title.toLowerCase()}» успешно добавлен в список для просмотра комнаты ${roomName.toLowerCase()}`
+          : `фильм «${res.item.title.toLowerCase()}» успешно удален из списка для просмотра`,
         { title: 'успех' }
       )
 
@@ -122,13 +163,13 @@ export function createMovieCard(props: MovieCardProps) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       toast.error(err.message, {
-        title: 'ошибка добавления фильма'
+        title: isMovieInTheRoom ? 'ошибка добавления фильма' : 'ошибка удаления фильма'
       })
     }
   })
 
-  addBtn.appendChild(contextMenu)
-  cardActions.appendChild(addBtn)
+  addBtn.element.appendChild(contextMenu)
+  cardActions.appendChild(addBtn.element)
 
   cardTitle.innerHTML = props.title
   cardImgContainer.appendChild(posterElement)

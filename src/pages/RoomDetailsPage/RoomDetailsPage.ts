@@ -82,8 +82,8 @@ export async function renderRoomDetailsPage() {
   try {
     await setWatchList(pageWatchlistEl, pageEmptyEl, pageTitleEl)
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'Ошибка сети', {
-      title: 'Ошибка при загрузке комнаты'
+    toast.error(err instanceof Error ? err.message.toLowerCase() : 'ошибка сети', {
+      title: 'ошибка при загрузке комнаты'
     })
   }
 

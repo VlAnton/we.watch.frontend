@@ -9,6 +9,11 @@ export interface RoomsPostResponse {
   room: Room
 }
 
+export interface RoomsDeleteResponse {
+  success: boolean
+  item: MovieItem
+}
+
 export interface RoomsGetResponse {
   rooms: Room[]
 }

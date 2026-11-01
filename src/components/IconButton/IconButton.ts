@@ -11,22 +11,23 @@ interface ButtonProps<TData = void> {
   onClick?: (event?: MouseEvent) => void | Promise<TData>
 }
 
-export function createIconButton(props: ButtonProps) {
+export interface IconButton {
+  element: HTMLElement
+  setIcon: (icon: string | SVGElement | HTMLElement) => void
+}
+
+export function createIconButton(props: ButtonProps): IconButton {
   const parser = new DOMParser()
   const doc = parser.parseFromString(buttonTemplate, 'text/html')
   const buttonRoot = doc.body.firstElementChild as HTMLElement
 
-  if (props.icon) {
-    const iconContainer = buttonRoot.querySelector<HTMLElement>(
-      '.icon-button__container'
-    )!
+  const iconContainer = buttonRoot.querySelector<HTMLElement>('.icon-button__container')!
 
-    if (typeof props.icon === 'string') {
-      const svgNode = parseSvg(props.icon)
-      iconContainer.appendChild(svgNode)
-    } else {
-      iconContainer.appendChild(props.icon)
-    }
+  if (typeof props.icon === 'string') {
+    const svgNode = parseSvg(props.icon)
+    iconContainer.appendChild(svgNode)
+  } else {
+    iconContainer.appendChild(props.icon)
   }
 
   switch (props.size) {
@@ -65,5 +66,16 @@ export function createIconButton(props: ButtonProps) {
 
   if (props.onClick) buttonRoot.addEventListener('click', props.onClick)
 
-  return buttonRoot
+  return {
+    element: buttonRoot,
+    setIcon(icon) {
+      iconContainer.innerHTML = ''
+      if (typeof icon === 'string') {
+        const svgNode = parseSvg(icon)
+        iconContainer.appendChild(svgNode)
+      } else {
+        iconContainer.appendChild(icon)
+      }
+    }
+  }
 }
