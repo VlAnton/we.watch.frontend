@@ -61,6 +61,9 @@ export async function renderRoomDetailsPage() {
     '.room-details-page__filters'
   )!
   const pageEmptyEl = pageRoot.querySelector<HTMLElement>('.room-details-page__empty')!
+  const breadcrumbsEl = pageRoot.querySelector<HTMLElement>('.breadcrumbs')!
+
+  router.setBreadcrumbs(breadcrumbsEl)
 
   const skeleton = createSkeleton({ size: 'l' })
 

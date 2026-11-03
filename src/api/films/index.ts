@@ -1,5 +1,5 @@
 import { apiFetch } from '../client'
-import { MovieItem, TMDBSearchResponse } from './types'
+import { MovieItem, TMDBMovieDetails, TMDBSearchResponse } from './types'
 
 export function getMovies(query: string, page: number) {
   const params = new URLSearchParams()
@@ -13,6 +13,15 @@ export function getMovies(query: string, page: number) {
   const endpoint = `/api/films/search${params.toString() ? `?${params.toString()}` : ''}`
 
   return apiFetch<TMDBSearchResponse<MovieItem>>(endpoint, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+export function getMovieDetails(movieId: number) {
+  return apiFetch<TMDBMovieDetails>(`/api/films/${movieId}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'

@@ -195,9 +195,7 @@ export async function renderMoviesPage() {
     roomBreadcrumb.classList.add('link', 'link__sm', 'link__breadcrumb')
     roomBreadcrumb.href = `/rooms/${currentRoom?.id}`
     roomBreadcrumb.textContent = currentRoomName ?? ''
-    if (currentRoom) {
-      breadcrumbsEl.appendChild(roomBreadcrumb)
-    }
+    router.setBreadcrumbs(breadcrumbsEl, currentRoom?.name)
   }
 
   return {

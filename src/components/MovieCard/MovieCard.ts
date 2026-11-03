@@ -59,7 +59,14 @@ export function createMovieCard(props: MovieCardProps) {
 
   const parser = new DOMParser()
   const doc = parser.parseFromString(movieCardTemplate, 'text/html')
-  const movieCardEl = doc.body.firstElementChild as HTMLElement
+
+  const currentRoomId = parseInt(router.params.roomId, 10)
+  const movieCardEl = doc.body.firstElementChild as HTMLLinkElement
+  if (currentRoomId) {
+    movieCardEl.href = `/rooms/${currentRoomId}/movies/${props.movieId}`
+  } else {
+    movieCardEl.href = `/movies/${props.movieId}`
+  }
   movieCardEl.id = `movie-${props.movieId}`
 
   const cardTitle = movieCardEl.querySelector<HTMLElement>('.card__title')!
@@ -74,7 +81,7 @@ export function createMovieCard(props: MovieCardProps) {
   })
 
   let currentRooms = props.rooms ?? []
-  const currentRoomId = parseInt(router.params.roomId, 10)
+
   let isMovieInTheCurrentRoom = getIsMovieInTheRoom(currentRoomId)
 
   const contextMenu = document.createElement('div')
@@ -85,7 +92,9 @@ export function createMovieCard(props: MovieCardProps) {
     icon: isMovieInTheCurrentRoom || props.deleteOnly ? closeIconSvg : plusIconSvg,
     size: 's',
     type: 'primary',
-    onClick() {
+    onClick(event) {
+      event?.preventDefault()
+      event?.stopPropagation()
       if (props.showContextMenu) {
         renderMenuItems()
         contextMenu.style.display = 'flex'

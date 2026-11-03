@@ -5,12 +5,21 @@ import { renderErrorPage } from '@/pages/Error/Error'
 
 import type { CleanupFn, Route, RouteParams } from './types'
 
+const BREADCRUMBS_TITLES_MAP = {
+  '^/rooms$': 'мои комнаты',
+  '^/rooms/\\d+$': 'комната',
+  '^/rooms/\\d+/movies$': 'список для просмотра',
+  '^/movies$': 'каталог фильмов'
+}
+
 export class Router {
   private routes: Route[] = []
   private rootElement: HTMLElement | Promise<HTMLElement>
   private currentCleanup: CleanupFn | null = null
   private mainLayout: MainLayoutInstance
   private activeParams: Record<string, string> = {}
+
+  private currentPath: string | null = null
 
   constructor(rootElement: HTMLElement | Promise<HTMLElement>, onLogout: () => void) {
     this.rootElement = rootElement
@@ -43,6 +52,37 @@ export class Router {
     return this.activeParams
   }
 
+  public get currentRoute(): string | null {
+    return this.currentPath
+  }
+
+  public setBreadcrumbs(container: HTMLElement, roomName?: string) {
+    const paths = this.currentPath?.split('/')
+    if (!paths) {
+      return
+    }
+
+    for (let i = paths.length - 1; i >= 2; i--) {
+      const breadcrumbPath = `/${paths.slice(1, i).join('/')}`
+
+      const breadcrumbEl = document.createElement('a')
+      breadcrumbEl.classList.add('link', 'link__sm', 'link__breadcrumb')
+      breadcrumbEl.href = breadcrumbPath
+      for (const [key, value] of Object.entries(BREADCRUMBS_TITLES_MAP)) {
+        const breadcrumbRegExp = new RegExp(key)
+        const isMatched = breadcrumbRegExp.test(breadcrumbPath)
+
+        if (isMatched && key === '^/rooms/\\d+$' && roomName) {
+          breadcrumbEl.textContent = `${value} «${roomName.toLowerCase()}»`
+        } else if (isMatched) {
+          breadcrumbEl.textContent = value
+        }
+      }
+
+      container.prepend(breadcrumbEl)
+    }
+  }
+
   public addRoute(route: Route): this {
     this.routes.push(route)
     return this
@@ -58,7 +98,6 @@ export class Router {
   }
 
   private matchRoute(pattern: string, path: string): RouteParams | null {
-    // Специфика для главной
     if (pattern === '/' && path === '/') return {}
 
     const patternSegments = pattern.split('/').filter(Boolean)
@@ -105,6 +144,7 @@ export class Router {
         return
       }
     }
+    this.currentPath = pathname
 
     this.activeParams = params
 

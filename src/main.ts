@@ -5,6 +5,7 @@ import { renderAuthPage } from '@/pages/AuthPage/AuthPage'
 import { Router } from '@/router'
 
 import { createLogoutModal } from './components/Modal/LogoutModal/LogoutModal'
+import { renderMovieDetailsPage } from './pages/MovieDetailsPage/MovieDetailsPage'
 import { renderMoviesPage } from './pages/MoviesPage/MoviesPage'
 import { renderRoomDetailsPage } from './pages/RoomDetailsPage/RoomDetailsPage'
 import { renderRoomsPage } from './pages/RoomsPage/RoomsPage'
@@ -54,6 +55,20 @@ router
     title: 'Фильмы',
     render: () => {
       return renderMoviesPage()
+    }
+  })
+  .addRoute({
+    path: '/movies/:movieId',
+    title: 'Фильмы',
+    render: () => {
+      return renderMovieDetailsPage()
+    }
+  })
+  .addRoute({
+    path: '/rooms/:roomId/movies/:movieId',
+    title: 'Фильмы',
+    render: () => {
+      return renderMovieDetailsPage()
     }
   })
   .addRoute({
