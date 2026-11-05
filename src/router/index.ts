@@ -5,10 +5,12 @@ import { renderErrorPage } from '@/pages/Error/Error'
 
 import type { CleanupFn, Route, RouteParams } from './types'
 
+const ROOM_ROUTE_REGEXP = '^/rooms/\\d+$'
+
 const BREADCRUMBS_TITLES_MAP = {
   '^/rooms$': 'мои комнаты',
-  '^/rooms/\\d+$': 'комната',
-  '^/rooms/\\d+/movies$': 'список для просмотра',
+  [ROOM_ROUTE_REGEXP]: 'комната',
+  '^/rooms/\\d+/movies$': 'каталог фильмов',
   '^/movies$': 'каталог фильмов'
 }
 
@@ -72,7 +74,7 @@ export class Router {
         const breadcrumbRegExp = new RegExp(key)
         const isMatched = breadcrumbRegExp.test(breadcrumbPath)
 
-        if (isMatched && key === '^/rooms/\\d+$' && roomName) {
+        if (isMatched && key === ROOM_ROUTE_REGEXP && roomName) {
           breadcrumbEl.textContent = `${value} «${roomName.toLowerCase()}»`
         } else if (isMatched) {
           breadcrumbEl.textContent = value

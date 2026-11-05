@@ -1,7 +1,10 @@
+$header-height: 64px;
+
 .page {
   padding: 24px 40px;
   max-width: min(1920px, 100%);
   width: 100%;
+  min-height: calc(100vh - $header-height);
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -33,6 +36,10 @@
 
   &__l {
     font-size: 22px;
+  }
+
+  &__alternate {
+    color: $text-grey;
   }
 
   &__breadcrumb {

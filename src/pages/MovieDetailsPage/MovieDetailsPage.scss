@@ -1,9 +1,141 @@
 .movie-details-page {
-  &__overview {
-    font-size: 10px;
-    font-weight: 400;
-    color: $text-secondary;
+  &__body {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 64px;
+    align-items: start;
+    width: 100%;
 
+    @media (max-width: 860px) {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+  }
+
+  &__poster {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-self: start;
+
+    width: min(25vw, 320px, calc((100vh - 159px) * 2 / 3));
+    min-width: 260px;
+
+    @media (max-width: 860px) {
+      width: 100%;
+    }
+
+    &-container {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      background-color: #161b22;
+
+      .lqip-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+
+        img,
+        &__thumb,
+        &__full {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+      }
+    }
+  }
+
+  &__description {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+
+    &-header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+  }
+
+  &__overview {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: $text-secondary;
     margin: 0;
+    text-transform: lowercase;
+  }
+
+  &__original-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: $text-highlight-pink-shallow;
+    margin: 0;
+    text-transform: lowercase;
+  }
+
+  &__info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    font-size: 14px;
+    color: $text-grey;
+    row-gap: 16px;
+
+    &-header {
+      margin: 0;
+      margin-top: 12px;
+      color: $text-primary;
+      font-weight: 600;
+    }
+
+    & * {
+      margin: 0;
+    }
+
+    & p:nth-child(2n) {
+      color: $text-secondary;
+    }
+  }
+
+  &__additional-data {
+    text-transform: lowercase;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    height: 100%;
+  }
+
+  &__rating-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__votes {
+    font-size: 12px;
+    color: $text-grey;
+    margin: 0;
+  }
+
+  &__rating {
+    font-size: 32px;
+    font-weight: 900;
+    color: #00bd00;
+    margin: 0;
+  }
+
+  &__cast {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-shrink: 1;
+    gap: 8px;
   }
 }
