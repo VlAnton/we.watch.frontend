@@ -10,10 +10,13 @@ interface ButtonProps<TData = void> {
   onCLick?: (event?: MouseEvent) => void | Promise<TData>
 }
 
+const buttonTemplateEl = document.createElement('template')
+buttonTemplateEl.innerHTML = buttonTemplate
+
 export function createButton(props: ButtonProps) {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(buttonTemplate, 'text/html')
-  const buttonRoot = doc.body.firstElementChild as HTMLElement
+  const buttonRoot = buttonTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   if (props.size) {
     switch (props.size) {

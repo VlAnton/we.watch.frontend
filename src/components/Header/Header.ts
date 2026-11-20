@@ -11,10 +11,13 @@ export interface HeaderProps {
   onNavigateHome?: () => void
 }
 
+const headerTemplateEl = document.createElement('template')
+headerTemplateEl.innerHTML = headerTemplate
+
 export function createHeader(props: HeaderProps = {}): HTMLElement {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(headerTemplate, 'text/html')
-  const header = doc.body.firstElementChild as HTMLElement
+  const header = headerTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   const headerActionsEl = header.querySelector<HTMLElement>('.app-header__actions')!
   const headerTabsEl = header.querySelector<HTMLElement>('.app-header__tabs')!

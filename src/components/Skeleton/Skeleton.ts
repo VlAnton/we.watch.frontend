@@ -3,25 +3,18 @@ import './Skeleton.scss'
 import skeletonTemplate from './Skeleton.html?raw'
 
 interface SkeletonProps {
-  size: 's' | 'm' | 'l'
+  height: string
 }
 
-export function createSkeleton(props: SkeletonProps) {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(skeletonTemplate, 'text/html')
-  const skeletonEl = doc.body.firstElementChild as HTMLElement
+const skeletonTemplateEl = document.createElement('template')
+skeletonTemplateEl.innerHTML = skeletonTemplate
 
-  switch (props.size) {
-    case 's':
-      skeletonEl.style.height = '40px'
-      break
-    case 'm':
-      skeletonEl.style.height = '60px'
-      break
-    case 'l':
-      skeletonEl.style.height = '80px'
-      break
-  }
+export function createSkeleton(props: SkeletonProps) {
+  const skeletonEl = skeletonTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
+
+  skeletonEl.style.height = props.height
 
   return skeletonEl
 }

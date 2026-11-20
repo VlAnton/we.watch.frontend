@@ -23,10 +23,13 @@ export interface InputFieldInstance {
   setVisible: (visible: boolean) => void
 }
 
+const inputFieldTemplateEl = document.createElement('template')
+inputFieldTemplateEl.innerHTML = templateHtml
+
 export function createInputField(props: InputFieldProps): InputFieldInstance {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(templateHtml, 'text/html')
-  const root = doc.body.firstElementChild as HTMLElement
+  const root = inputFieldTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   if (!root) {
     throw new Error('не удалось спарсить шаблон InputField')

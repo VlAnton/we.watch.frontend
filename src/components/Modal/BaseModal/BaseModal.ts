@@ -22,6 +22,9 @@ export interface BaseModalInstance {
   destroy: () => void
 }
 
+const modalTemplateEl = document.createElement('template')
+modalTemplateEl.innerHTML = baseModalTemplate
+
 export function createBaseModal({
   title = '',
   content = '',
@@ -29,9 +32,7 @@ export function createBaseModal({
   onClose,
   onOpen
 }: BaseModalProps): BaseModalInstance {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(baseModalTemplate, 'text/html')
-  const root = doc.body.firstElementChild as HTMLElement
+  const root = modalTemplateEl.content.firstElementChild!.cloneNode(true) as HTMLElement
 
   if (!root) {
     throw new Error('Не удалось загрузить шаблон BaseModal')

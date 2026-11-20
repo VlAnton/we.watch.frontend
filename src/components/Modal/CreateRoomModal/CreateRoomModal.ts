@@ -9,10 +9,13 @@ import { router } from '@/main'
 import { createBaseModal } from '../BaseModal/BaseModal'
 import createRoomModalTemplate from './CreateRoomModal.html?raw'
 
+const createRoomModalTemplateEl = document.createElement('template')
+createRoomModalTemplateEl.innerHTML = createRoomModalTemplate
+
 export function createRoomModal() {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(createRoomModalTemplate, 'text/html')
-  const root = doc.body.firstElementChild as HTMLElement
+  const root = createRoomModalTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   const modalInputs = root.querySelector('.modal-form__inputs')! as HTMLElement
 

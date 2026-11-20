@@ -29,13 +29,9 @@ export async function renderRoomDetailsPage() {
       roomWatchlist.forEach((movie) => {
         const movieCard = createMovieCard({
           ...movie,
-          showContextMenu: false,
-          deleteOnly: true,
-          onRoomsUpdate() {
-            setWatchList(query)
-          }
+          deleteOnly: true
         })
-        fragment.appendChild(movieCard.element)
+        fragment.appendChild(movieCard)
       })
       pageWatchlistEl.appendChild(fragment)
     } else {
@@ -83,7 +79,7 @@ export async function renderRoomDetailsPage() {
 
   router.setBreadcrumbs(breadcrumbsEl)
 
-  const skeleton = createSkeleton({ size: 'l' })
+  const skeleton = createSkeleton({ height: '500px' })
 
   const handleSearch = debounce((query: string) => {
     setWatchList(query)
@@ -98,7 +94,6 @@ export async function renderRoomDetailsPage() {
     onInput(value) {
       pageEmptyEl.style.display = 'none'
       pageWatchlistEl.style.display = 'grid'
-      skeleton.style.height = '500px'
       const fragment = document.createDocumentFragment()
       for (let i = 0; i < 4; i++) {
         fragment.appendChild(skeleton.cloneNode(true))

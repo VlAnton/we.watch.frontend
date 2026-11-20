@@ -6,7 +6,9 @@ import successSvg from '@/assets/icons/success.svg?raw'
 import templateHtml from './Toast.html?raw'
 import { ToastOptions, ToastType } from './types'
 
-// Векторные иконки для статусов
+const toastTemplateEl = document.createElement('template')
+toastTemplateEl.innerHTML = templateHtml
+
 const ICONS: Record<ToastType, string> = {
   success: successSvg,
   error: errorSvg
@@ -19,7 +21,6 @@ const DEFAULT_TITLES: Record<ToastType, string> = {
 
 let toastContainer: HTMLElement | null = null
 
-// Инициализируем общий контейнер для всех тостов (ленивая инициализация)
 function getOrCreateContainer(): HTMLElement {
   if (!toastContainer || !document.body.contains(toastContainer)) {
     toastContainer = document.createElement('div')
@@ -29,15 +30,11 @@ function getOrCreateContainer(): HTMLElement {
   return toastContainer
 }
 
-/**
- * Создает и показывает отдельное уведомление
- */
 function showToast(type: ToastType, options: ToastOptions): HTMLElement {
   const container = getOrCreateContainer()
-
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(templateHtml, 'text/html')
-  const toastEl = doc.body.firstElementChild as HTMLElement
+  const toastEl = toastTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   if (!toastEl) {
     throw new Error('Не удалось загрузить шаблон Toast')

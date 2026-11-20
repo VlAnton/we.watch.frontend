@@ -16,10 +16,13 @@ export interface IconButton {
   setIcon: (icon: string | SVGElement | HTMLElement) => void
 }
 
+const iconButtonTemplateEl = document.createElement('template')
+iconButtonTemplateEl.innerHTML = buttonTemplate
+
 export function createIconButton(props: ButtonProps): IconButton {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(buttonTemplate, 'text/html')
-  const buttonRoot = doc.body.firstElementChild as HTMLElement
+  const buttonRoot = iconButtonTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   const iconContainer = buttonRoot.querySelector<HTMLElement>('.icon-button__container')!
 

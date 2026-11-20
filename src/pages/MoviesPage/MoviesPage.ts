@@ -55,8 +55,7 @@ export async function renderMoviesPage() {
     isMoreLoading: false
   })
 
-  const baseSkeleton = createSkeleton({ size: 'l' })
-  baseSkeleton.style.height = '500px'
+  const baseSkeleton = createSkeleton({ height: '500px' })
 
   const unsubs: Array<() => void> = []
 
@@ -123,15 +122,10 @@ export async function renderMoviesPage() {
     for (const movieItem of items) {
       const card = createMovieCard({
         ...movieItem,
-        showContextMenu: !currentRoomId,
-        rooms: state.rooms,
-        onRoomsUpdate: (freshRooms) => {
-          state.rooms = freshRooms
-          card.updateRooms(freshRooms)
-        }
+        deleteOnly: !!currentRoomId
       })
 
-      fragment.appendChild(card.element)
+      fragment.appendChild(card)
     }
 
     moviesListEl.appendChild(fragment)

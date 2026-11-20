@@ -74,7 +74,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
     roomsListEl.innerHTML = ''
     const fragment = document.createDocumentFragment()
     for (let i = 0; i < count; i++) {
-      fragment.appendChild(createSkeleton({ size: 'l' }))
+      fragment.appendChild(createSkeleton({ height: '80px' }))
     }
     roomsListEl.appendChild(fragment)
   }
@@ -105,11 +105,13 @@ export function renderRoomsPage(props: RoomsPageProps) {
 
     try {
       const { rooms } = await getRoomsList(query, { signal: abortController.signal })
-      if (query && !rooms.length) {
-        roomsListEmptyEl.style.display = 'flex'
-        pageListEmptyTitleEl.textContent = `не удалось найти комнаты по запросу «${query}»`
-      }
-      renderList(rooms)
+      setTimeout(() => {
+        if (query && !rooms.length) {
+          roomsListEmptyEl.style.display = 'flex'
+          pageListEmptyTitleEl.textContent = `не удалось найти комнаты по запросу «${query}»`
+        }
+        renderList(rooms)
+      }, 300)
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') {
         return
@@ -127,7 +129,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
 
   const handleSearch = debounce((query: string) => {
     fetchRooms(query)
-  }, 350)
+  }, 300)
 
   const searchField = createInputField({
     label: 'Название',

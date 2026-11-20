@@ -8,10 +8,13 @@ import { router } from '@/main'
 import { createBaseModal } from '../BaseModal/BaseModal'
 import templateHtml from './LogoutModal.html?raw'
 
+const logoutModalTemplateEl = document.createElement('template')
+logoutModalTemplateEl.innerHTML = templateHtml
+
 export function createLogoutModal() {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(templateHtml, 'text/html')
-  const modalRoot = doc.body.firstElementChild as HTMLElement
+  const modalRoot = logoutModalTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   if (!modalRoot) {
     throw new Error('Не удалось загрузить шаблон AuthPage')

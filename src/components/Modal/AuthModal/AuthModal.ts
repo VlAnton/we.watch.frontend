@@ -13,6 +13,9 @@ interface AuthPageProps {
 
 type AuthMode = 'login' | 'register'
 
+const authModalTemplateEl = document.createElement('template')
+authModalTemplateEl.innerHTML = templateHtml
+
 function toggleUsernameField(
   usernameWrapper: HTMLElement,
   usernameField: InputFieldInstance,
@@ -79,9 +82,9 @@ function setInputFields() {
 }
 
 export function createAuthModal(props: AuthPageProps) {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(templateHtml, 'text/html')
-  const modalRoot = doc.body.firstElementChild as HTMLElement
+  const modalRoot = authModalTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   if (!modalRoot) {
     throw new Error('Не удалось загрузить шаблон AuthPage')

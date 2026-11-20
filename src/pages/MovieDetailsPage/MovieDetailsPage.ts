@@ -15,6 +15,19 @@ pageTemplateEl.innerHTML = pageTemplate
 
 type MovieInfoField = readonly [key: keyof TMDBMovieDetails['data'], label: string]
 
+const MOVIE_INFO_FIELDS = [
+  ['releaseDate', 'дата выхода'],
+  ['genres', 'жанры'],
+  ['tagline', 'слоган'],
+  ['directors', 'режиссер'],
+  ['writers', 'сценарист'],
+  ['producers', 'продюсер'],
+  ['cinematographers', 'оператор'],
+  ['editors', 'монтажер'],
+  ['budgetUsd', 'бюджет'],
+  ['runtimeMinutes', 'время']
+] as const satisfies readonly MovieInfoField[]
+
 export async function renderMovieDetailsPage() {
   function setCast(cast: TMDBCastItem[]) {
     const fragment = document.createDocumentFragment()
@@ -40,21 +53,8 @@ export async function renderMovieDetailsPage() {
   }
 
   function setMovieInfo(movieDetails: TMDBMovieDetails['data']) {
-    const movieInfoFields = [
-      ['releaseDate', 'дата выхода'],
-      ['genres', 'жанры'],
-      ['tagline', 'слоган'],
-      ['directors', 'режиссер'],
-      ['writers', 'сценарист'],
-      ['producers', 'продюсер'],
-      ['cinematographers', 'оператор'],
-      ['editors', 'монтажер'],
-      ['budgetUsd', 'бюджет'],
-      ['runtimeMinutes', 'время']
-    ] as const satisfies readonly MovieInfoField[]
-
     const fragment = document.createDocumentFragment()
-    movieInfoFields.forEach(([field, title]) => {
+    MOVIE_INFO_FIELDS.forEach(([field, title]) => {
       const rowTitle = document.createElement('p')
       const fieldData =
         movieDetails[field] instanceof String
