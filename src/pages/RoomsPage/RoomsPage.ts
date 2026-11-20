@@ -1,7 +1,7 @@
 import './RoomsPage.scss'
 
 import { getRoomsList } from '@/api/rooms'
-import { Room } from '@/api/rooms/types'
+import type { Room } from '@/api/rooms/types'
 import { createButton } from '@/components/Button/Button'
 import { createInputField } from '@/components/Input/Input'
 import { createRoomModal } from '@/components/Modal/CreateRoomModal/CreateRoomModal'
@@ -15,122 +15,119 @@ interface RoomsPageProps {
   isMocked?: boolean
 }
 
-const mockedRooms: Room[] = [
+export const MOCKED_ROOMS: Room[] = [
   {
-    code: 'mocked-code',
+    code: 'mocked-code-1',
     createdAt: new Date().toLocaleDateString(),
     createdBy: 1,
     id: 1,
-    name: 'белиберда'
+    name: 'Комната 1'
   },
   {
-    code: 'mocked-code',
+    code: 'mocked-code-2',
     createdAt: new Date().toLocaleDateString(),
     createdBy: 1,
-    id: 1,
-    name: 'белиберда'
+    id: 2,
+    name: 'Комната 2'
   },
   {
-    code: 'mocked-code',
+    code: 'mocked-code-3',
     createdAt: new Date().toLocaleDateString(),
     createdBy: 1,
-    id: 1,
-    name: 'белиберда'
+    id: 3,
+    name: 'Комната 3'
   }
 ]
 
-let lastRequestId = 0
+const pageTemplateEl = document.createElement('template')
+pageTemplateEl.innerHTML = roomsPageTemplate
 
-function setMockData(roomsListEl: HTMLElement) {
-  const mockedRoomCards = createMockedRoomCards()
-  mockedRoomCards.forEach((mr) => {
-    roomsListEl.appendChild(mr)
-  })
+function createRoomCard(room: Pick<Room, 'id' | 'name'>): HTMLAnchorElement {
+  const card = document.createElement('a')
+  card.className = 'rooms-page__room-card'
+  card.href = `/rooms/${room.id}`
+
+  const title = document.createElement('h3')
+  title.className = 'rooms-page__room-card-title'
+  title.textContent = room.name
+
+  card.appendChild(title)
+  return card
 }
 
-function createMockedRoomCards() {
-  const mockedRoomCards = []
-  for (const room of mockedRooms) {
-    const roomCard = document.createElement('a')
-    roomCard.classList.add('rooms-page__room-card')
+export function renderRoomsPage(props: RoomsPageProps) {
+  const pageRoot = pageTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
-    const roomCardTitle = document.createElement('h3')
-    roomCardTitle.textContent = room.name
-    roomCardTitle.classList.add('rooms-page__room-card-title')
+  const roomsListEl = pageRoot.querySelector<HTMLElement>('.rooms-page__list')!
+  const roomsListFiltersEl = pageRoot.querySelector<HTMLElement>('.rooms-page__filters')!
+  const roomsListEmptyEl = pageRoot.querySelector<HTMLElement>('.rooms-page__empty')!
+  const pageListEmptyTitleEl = pageRoot.querySelector<HTMLElement>(
+    '.rooms-page__empty-text'
+  )!
 
-    roomCard.appendChild(roomCardTitle)
-    mockedRoomCards.push(roomCard)
+  let abortController: AbortController | null = null
+
+  const showSkeletons = (count = 3) => {
+    roomsListEmptyEl.style.display = 'none'
+    roomsListEl.innerHTML = ''
+    const fragment = document.createDocumentFragment()
+    for (let i = 0; i < count; i++) {
+      fragment.appendChild(createSkeleton({ size: 'l' }))
+    }
+    roomsListEl.appendChild(fragment)
   }
-  return mockedRoomCards
-}
 
-function setRooms(
-  roomsListEl: HTMLElement,
-  roomsListEmptyEl: HTMLElement,
-  query: string = ''
-) {
-  const currentRequestId = ++lastRequestId
+  const renderList = (rooms: Room[]) => {
+    roomsListEl.innerHTML = ''
 
-  getRoomsList(query)
-    .then(({ rooms }) => {
-      if (currentRequestId !== lastRequestId) {
-        return
-      }
+    if (rooms.length === 0) {
+      roomsListEmptyEl.style.display = 'flex'
+      return
+    }
 
-      roomsListEl.innerHTML = ''
+    roomsListEmptyEl.style.display = 'none'
+    const fragment = document.createDocumentFragment()
+    for (const room of rooms) {
+      fragment.appendChild(createRoomCard(room))
+    }
+    roomsListEl.appendChild(fragment)
+  }
 
-      if (rooms.length === 0) {
+  const fetchRooms = async (query: string = '') => {
+    if (abortController) {
+      abortController.abort()
+    }
+    abortController = new AbortController()
+
+    showSkeletons(3)
+
+    try {
+      const { rooms } = await getRoomsList(query, { signal: abortController.signal })
+      if (query && !rooms.length) {
         roomsListEmptyEl.style.display = 'flex'
-        return
+        pageListEmptyTitleEl.textContent = `не удалось найти комнаты по запросу «${query}»`
       }
-
-      for (const room of rooms) {
-        const roomCard = document.createElement('a')
-        roomCard.classList.add('rooms-page__room-card')
-        roomCard.href = `/rooms/${room.id}`
-
-        const roomCardTitle = document.createElement('h3')
-        roomCardTitle.textContent = room.name
-        roomCardTitle.classList.add('rooms-page__room-card-title')
-
-        roomCard.appendChild(roomCardTitle)
-        roomsListEl.appendChild(roomCard)
-      }
-    })
-    .catch((err) => {
-      if (currentRequestId !== lastRequestId) {
+      renderList(rooms)
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
         return
       }
 
       roomsListEl.innerHTML = ''
       roomsListEmptyEl.style.display = 'flex'
-
       toast.error(err instanceof Error ? err.message : 'Ошибка сети', {
         title: 'Не удалось загрузить список комнат'
       })
-    })
-}
-
-export function renderRoomsPage(props: RoomsPageProps) {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(roomsPageTemplate, 'text/html')
-  const pageRoot = doc.body.firstElementChild as HTMLElement
-
-  if (!pageRoot) {
-    throw new Error('Не удалось загрузить шаблон RoomsPage')
+    } finally {
+      abortController = null
+    }
   }
 
-  const roomsListEl = pageRoot.querySelector('.rooms-page__list')! as HTMLElement
-  const roomsListFiltersEl = pageRoot.querySelector(
-    '.rooms-page__filters'
-  )! as HTMLElement
-  const roomsListEmptyEl = pageRoot.querySelector('.rooms-page__empty')! as HTMLElement
-
-  const skeleton = createSkeleton({ size: 'l' })
-
   const handleSearch = debounce((query: string) => {
-    setRooms(roomsListEl, roomsListEmptyEl, query)
-  }, 400)
+    fetchRooms(query)
+  }, 350)
 
   const searchField = createInputField({
     label: 'Название',
@@ -139,36 +136,34 @@ export function renderRoomsPage(props: RoomsPageProps) {
     required: false,
     type: 'text',
     onInput(value) {
-      roomsListEmptyEl.style.display = 'none'
-      roomsListEl.innerHTML = `
-        ${skeleton.outerHTML}
-        ${skeleton.outerHTML}
-        ${skeleton.outerHTML}
-      `
-      handleSearch(value)
+      handleSearch(value.trim())
     }
   })
 
   const createModal = createRoomModal()
 
-  const button = createButton({
+  const createBtn = createButton({
     text: 'Создать комнату',
     size: 'm',
     width: 'fit-content',
-    onCLick: () => {
-      createModal.open()
-    }
+    onCLick: () => createModal.open()
   })
 
   roomsListFiltersEl.appendChild(searchField.element)
-  roomsListFiltersEl.appendChild(button)
+  roomsListFiltersEl.appendChild(createBtn)
 
   if (props.isMocked) {
-    setMockData(roomsListEl)
-    return pageRoot
+    renderList(MOCKED_ROOMS)
+  } else {
+    fetchRooms()
   }
 
-  setRooms(roomsListEl, roomsListEmptyEl)
+  const cleanup = () => {
+    if (abortController) {
+      abortController.abort()
+    }
+    handleSearch.cancel()
+  }
 
-  return pageRoot
+  return { element: pageRoot, cleanup }
 }

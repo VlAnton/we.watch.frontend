@@ -47,10 +47,45 @@ $header-height: 64px;
     display: flex;
     align-items: center;
     gap: 4px;
+    text-transform: lowercase;
+
+    &--disabled {
+      color: $text-grey;
+    }
 
     &::before {
       content: '<';
+      color: $text-primary;
       padding: 4px;
+    }
+  }
+
+  &__tab {
+    position: relative;
+    transition: transform 0.2s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+
+      height: 2px;
+      width: 100%;
+      background-color: $border;
+      transform: scaleX(0);
+      transform-origin: left;
+
+      transition: transform 0.2s ease;
+    }
+
+    &--active,
+    &:hover {
+      transform: scale(1.1);
+
+      &::after {
+        transform: scaleX(1);
+      }
     }
   }
 }

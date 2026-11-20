@@ -20,7 +20,7 @@ export function createRoom(payload: RoomPayload) {
   })
 }
 
-export function getRoomsList(query?: string) {
+export function getRoomsList(query?: string, options?: { signal?: AbortSignal }) {
   const params = new URLSearchParams()
   const trimmed = query?.trim() ?? ''
 
@@ -29,7 +29,10 @@ export function getRoomsList(query?: string) {
   }
 
   const endpoint = `/api/rooms/my${params.toString() ? `?${params.toString()}` : ''}`
-  return apiFetch<RoomsGetResponse>(endpoint)
+
+  return apiFetch<RoomsGetResponse>(endpoint, {
+    signal: options?.signal
+  })
 }
 
 export function getUserRoomsWithMovies() {

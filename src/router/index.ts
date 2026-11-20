@@ -59,6 +59,7 @@ export class Router {
   }
 
   public setBreadcrumbs(container: HTMLElement, roomName?: string) {
+    container.innerHTML = ''
     const paths = this.currentPath?.split('/')
     if (!paths) {
       return
@@ -73,7 +74,6 @@ export class Router {
       for (const [key, value] of Object.entries(BREADCRUMBS_TITLES_MAP)) {
         const breadcrumbRegExp = new RegExp(key)
         const isMatched = breadcrumbRegExp.test(breadcrumbPath)
-
         if (isMatched && key === ROOM_ROUTE_REGEXP && roomName) {
           breadcrumbEl.textContent = `${value} «${roomName.toLowerCase()}»`
         } else if (isMatched) {

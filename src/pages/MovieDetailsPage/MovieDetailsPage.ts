@@ -6,21 +6,25 @@ import { getRoomDetails } from '@/api/rooms'
 import { createPoster } from '@/components/Image/Image'
 import { toast } from '@/components/Toast/Toast'
 import { router } from '@/main'
+import { setCurrentBreadcrumb } from '@/utils/breadcrumbs'
 
 import pageTemplate from './MovieDetailsPage.html?raw'
 
-type MovieDataKey = keyof TMDBMovieDetails['data']
+const pageTemplateEl = document.createElement('template')
+pageTemplateEl.innerHTML = pageTemplate
 
-type MovieInfoField = readonly [key: MovieDataKey, label: string]
+type MovieInfoField = readonly [key: keyof TMDBMovieDetails['data'], label: string]
 
 export async function renderMovieDetailsPage() {
   function setCast(cast: TMDBCastItem[]) {
+    const fragment = document.createDocumentFragment()
     cast.forEach((actor) => {
       const actorLink = document.createElement('a')
       actorLink.classList.add('link', 'link__s', 'link__alternate')
       actorLink.textContent = actor.name
-      castEl.appendChild(actorLink)
+      fragment.appendChild(actorLink)
     })
+    castEl.appendChild(fragment)
   }
 
   function setRating(rating: number, votes: number) {
@@ -49,6 +53,7 @@ export async function renderMovieDetailsPage() {
       ['runtimeMinutes', 'время']
     ] as const satisfies readonly MovieInfoField[]
 
+    const fragment = document.createDocumentFragment()
     movieInfoFields.forEach(([field, title]) => {
       const rowTitle = document.createElement('p')
       const fieldData =
@@ -60,14 +65,15 @@ export async function renderMovieDetailsPage() {
       const rowData = document.createElement('p')
       rowData.textContent = fieldData.toLowerCase()
 
-      pageInfoEl.appendChild(rowTitle)
-      pageInfoEl.appendChild(rowData)
+      fragment.appendChild(rowTitle)
+      fragment.appendChild(rowData)
     })
+    pageInfoEl.appendChild(fragment)
   }
 
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(pageTemplate, 'text/html')
-  const pageRoot = doc.body.firstElementChild as HTMLElement
+  const pageRoot = pageTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   const posterContainerEl = pageRoot.querySelector<HTMLElement>(
     '.movie-details-page__poster-container'
@@ -86,17 +92,19 @@ export async function renderMovieDetailsPage() {
   const castEl = pageRoot.querySelector<HTMLElement>('.movie-details-page__cast')!
 
   const breadcrumbsEl = pageRoot.querySelector<HTMLElement>('.breadcrumbs')!
+
   const roomId = parseInt(router.params.roomId, 10)
   const movieId = parseInt(router.params.movieId, 10)
   let room
 
-  try {
-    const roomDetails = await getRoomDetails(roomId)
-    room = roomDetails.room
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    console.error(err.message)
+  if (roomId) {
+    try {
+      const roomDetails = await getRoomDetails(roomId)
+      room = roomDetails.room
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err.message)
+    }
   }
   router.setBreadcrumbs(breadcrumbsEl, room?.name)
 
@@ -105,6 +113,7 @@ export async function renderMovieDetailsPage() {
     if (!success) {
       throw new Error('попробуйте перезагрузить страницу')
     }
+    setCurrentBreadcrumb(breadcrumbsEl, movieDetails.title.toLowerCase())
     const posterEl = createPoster({
       posterPath: movieDetails.posterPath,
       title: movieDetails.title,

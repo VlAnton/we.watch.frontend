@@ -7,51 +7,66 @@ import { createMovieCard } from '@/components/MovieCard/MovieCard'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
 import { toast } from '@/components/Toast/Toast'
 import { router } from '@/main'
+import { effect, reactive } from '@/state/reactivity'
+import { setCurrentBreadcrumb } from '@/utils/breadcrumbs'
 import { debounce } from '@/utils/debounce'
 
 import pageTemplate from './RoomDetailsPage.html?raw'
 
-async function setWatchList(
-  pageWatchlistEl: HTMLElement,
-  pageEmptyEl: HTMLElement,
-  pageTitleEl: HTMLElement,
-  query: string = ''
-) {
-  const roomId = parseInt(router.params.roomId, 10)
-  const roomDetailsData = await getRoomDetails(roomId, query)
-  const roomWatchlist = roomDetailsData.watchlist
-  if (roomWatchlist.length > 0) {
-    pageWatchlistEl.innerHTML = ''
-    pageWatchlistEl.style.display = 'grid'
-    pageEmptyEl.style.display = 'none'
-    roomWatchlist.forEach((movie) => {
-      const movieCard = createMovieCard({
-        ...movie,
-        showContextMenu: false,
-        deleteOnly: true,
-        onRoomsUpdate() {
-          setWatchList(pageWatchlistEl, pageEmptyEl, pageTitleEl, query)
-        }
-      })
-      pageWatchlistEl.appendChild(movieCard.element)
-    })
-  } else {
-    pageWatchlistEl.style.display = 'none'
-    pageEmptyEl.style.display = 'flex'
-    if (query.length > 0) {
-      const pageEmotyTextEl = pageEmptyEl.querySelector<HTMLElement>(
-        '.room-details-page__empty-text'
-      )!
-      pageEmotyTextEl.textContent = `по запросу «${query}» ничего не найдено`
-    }
-  }
-  pageTitleEl.textContent = roomDetailsData.room.name
-}
+const pageTemplateEl = document.createElement('template')
+pageTemplateEl.innerHTML = pageTemplate
 
 export async function renderRoomDetailsPage() {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(pageTemplate, 'text/html')
-  const pageRoot = doc.body.firstElementChild as HTMLElement
+  async function setWatchList(query: string = '') {
+    const roomId = parseInt(router.params.roomId, 10)
+    const roomDetailsData = await getRoomDetails(roomId, query)
+    const roomWatchlist = roomDetailsData.watchlist
+    if (roomWatchlist.length > 0) {
+      pageWatchlistEl.innerHTML = ''
+      pageWatchlistEl.style.display = 'grid'
+      pageEmptyEl.style.display = 'none'
+      const fragment = document.createDocumentFragment()
+      roomWatchlist.forEach((movie) => {
+        const movieCard = createMovieCard({
+          ...movie,
+          showContextMenu: false,
+          deleteOnly: true,
+          onRoomsUpdate() {
+            setWatchList(query)
+          }
+        })
+        fragment.appendChild(movieCard.element)
+      })
+      pageWatchlistEl.appendChild(fragment)
+    } else {
+      pageWatchlistEl.style.display = 'none'
+      pageEmptyEl.style.display = 'flex'
+      if (query.length > 0) {
+        pageEmptyTextEl.textContent = `по запросу «${query}» ничего не найдено`
+      }
+    }
+    state.pageTitle = roomDetailsData.room.name
+  }
+
+  const state = reactive({
+    pageTitle: ''
+  })
+
+  const unsubs: Array<() => void> = []
+
+  unsubs.push(
+    effect(() => {
+      if (!state.pageTitle) {
+        return
+      }
+      pageTitleEl.textContent = state.pageTitle
+      setCurrentBreadcrumb(breadcrumbsEl, `комната «${state.pageTitle}»`)
+    })
+  )
+
+  const pageRoot = pageTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
   const pageTitleEl = pageRoot.querySelector<HTMLElement>('.page__title')!
   const pageWatchlistEl = pageRoot.querySelector<HTMLElement>(
@@ -61,6 +76,9 @@ export async function renderRoomDetailsPage() {
     '.room-details-page__filters'
   )!
   const pageEmptyEl = pageRoot.querySelector<HTMLElement>('.room-details-page__empty')!
+  const pageEmptyTextEl = pageEmptyEl.querySelector<HTMLElement>(
+    '.room-details-page__empty-text'
+  )!
   const breadcrumbsEl = pageRoot.querySelector<HTMLElement>('.breadcrumbs')!
 
   router.setBreadcrumbs(breadcrumbsEl)
@@ -68,7 +86,7 @@ export async function renderRoomDetailsPage() {
   const skeleton = createSkeleton({ size: 'l' })
 
   const handleSearch = debounce((query: string) => {
-    setWatchList(pageWatchlistEl, pageEmptyEl, pageTitleEl, query)
+    setWatchList(query)
   }, 400)
 
   const searchField = createInputField({
@@ -81,12 +99,12 @@ export async function renderRoomDetailsPage() {
       pageEmptyEl.style.display = 'none'
       pageWatchlistEl.style.display = 'grid'
       skeleton.style.height = '500px'
-      pageWatchlistEl.innerHTML = `
-        ${skeleton.outerHTML}
-        ${skeleton.outerHTML}
-        ${skeleton.outerHTML}
-        ${skeleton.outerHTML}
-      `
+      const fragment = document.createDocumentFragment()
+      for (let i = 0; i < 4; i++) {
+        fragment.appendChild(skeleton.cloneNode(true))
+      }
+      pageWatchlistEl.innerHTML = ''
+      pageWatchlistEl.appendChild(fragment)
       handleSearch(value)
     }
   })
@@ -103,12 +121,18 @@ export async function renderRoomDetailsPage() {
   pageFiltersEl.appendChild(toMoviesCatalogBtn)
 
   try {
-    await setWatchList(pageWatchlistEl, pageEmptyEl, pageTitleEl)
+    await setWatchList()
   } catch (err) {
     toast.error(err instanceof Error ? err.message.toLowerCase() : 'ошибка сети', {
       title: 'ошибка при загрузке комнаты'
     })
   }
 
-  return pageRoot
+  return {
+    element: pageRoot,
+    cleanup: () => {
+      unsubs.forEach((unsub) => unsub())
+      handleSearch.cancel()
+    }
+  }
 }

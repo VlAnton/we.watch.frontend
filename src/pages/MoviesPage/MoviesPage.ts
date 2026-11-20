@@ -1,143 +1,211 @@
 import './MoviesPage.scss'
 
 import { getMovies } from '@/api/films'
+import type { MovieItem } from '@/api/films/types'
 import { getUserRoomsWithMovies } from '@/api/rooms'
-import { RoomWithMovies } from '@/api/rooms/types'
+import type { RoomWithMovies } from '@/api/rooms/types'
 import { createInputField } from '@/components/Input/Input'
 import { createMovieCard } from '@/components/MovieCard/MovieCard'
-import { MovieCard } from '@/components/MovieCard/types'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
 import { toast } from '@/components/Toast/Toast'
 import { router } from '@/main'
+import { effect, reactive } from '@/state/reactivity'
+import { setCurrentBreadcrumb } from '@/utils/breadcrumbs'
 import { debounce } from '@/utils/debounce'
 
 import pageTemplate from './MoviesPage.html?raw'
 
+const pageTemplateEl = document.createElement('template')
+pageTemplateEl.innerHTML = pageTemplate
+
+interface MoviesPageState {
+  movies: MovieItem[]
+  rooms: RoomWithMovies[]
+  query: string
+  page: number
+  totalPages: number
+  isInitialLoading: boolean
+  isMoreLoading: boolean
+}
+
 export async function renderMoviesPage() {
-  let activeRooms: RoomWithMovies[] = []
-  const currentRoomId = parseInt(router.params.roomId, 10)
+  const pageRoot = pageTemplateEl.content.firstElementChild!.cloneNode(
+    true
+  ) as HTMLElement
 
-  function updateAllCardsRooms(card: MovieCard, freshRooms: RoomWithMovies[]) {
-    activeRooms = freshRooms
-    card.updateRooms(freshRooms)
-  }
+  const pageTitleEl = pageRoot.querySelector<HTMLElement>('.page__title')!
+  const moviesListEl = pageRoot.querySelector<HTMLElement>('.movies-page__watchlist')!
+  const pageFiltersEl = pageRoot.querySelector<HTMLElement>('.movies-page__filters')!
+  const pageEmptyEl = pageRoot.querySelector<HTMLElement>('.movies-page__empty')!
+  const pageEmptyTextEl = pageEmptyEl.querySelector<HTMLElement>(
+    '.movies-page__empty-text'
+  )!
+  const sentinelEl = pageRoot.querySelector<HTMLElement>('.movies-page__sentinel')!
+  const breadcrumbsEl = pageRoot.querySelector<HTMLElement>('.breadcrumbs')!
 
-  function showInitialSkeletons() {
-    pageEmptyEl.style.display = 'none'
-    sentinelEl.style.display = 'none'
-    moviesListEl.style.display = 'grid'
-    moviesListEl.innerHTML = `
-      ${skeleton.outerHTML}
-      ${skeleton.outerHTML}
-      ${skeleton.outerHTML}
-      ${skeleton.outerHTML}
-    `
-  }
+  const currentRoomId = router.params.roomId ? parseInt(router.params.roomId, 10) : null
 
-  async function fetchMovies(isNewQuery: boolean = false) {
-    if (isLoading) return
-    if (!isNewQuery && currentPage > totalPages) return
+  const state = reactive<MoviesPageState>({
+    movies: [],
+    rooms: [],
+    query: 'a',
+    page: 1,
+    totalPages: 1,
+    isInitialLoading: true,
+    isMoreLoading: false
+  })
 
-    isLoading = true
-    const currentRequestId = ++lastRequestId
+  const baseSkeleton = createSkeleton({ size: 'l' })
+  baseSkeleton.style.height = '500px'
 
-    if (isNewQuery) {
-      currentPage = 1
-      showInitialSkeletons()
-    } else {
-      sentinelEl.style.display = 'flex'
-    }
+  const unsubs: Array<() => void> = []
 
-    try {
-      const data = await getMovies(currentQuery, currentPage)
-
-      if (currentRequestId !== lastRequestId) return
-
-      if (isNewQuery) {
-        moviesListEl.innerHTML = ''
-      }
-
-      totalPages = data.total_pages || 1
-
-      if (isNewQuery && (!data.results || data.results.length === 0)) {
-        moviesListEl.style.display = 'none'
-        sentinelEl.style.display = 'none'
-        pageEmptyEl.style.display = 'flex'
+  unsubs.push(
+    effect(() => {
+      if (!currentRoomId) {
+        pageTitleEl.textContent = 'поиск фильмов'
+        breadcrumbsEl.style.display = 'none'
         return
       }
 
-      moviesListEl.style.display = 'grid'
-      pageEmptyEl.style.display = 'none'
+      const currentRoom = state.rooms.find((r) => r.id === currentRoomId)
+      pageTitleEl.textContent = currentRoom
+        ? `поиск фильмов для комнаты «${currentRoom.name.toLowerCase()}»`
+        : 'поиск фильмов'
 
-      const fragment = document.createDocumentFragment()
-      data.results.forEach((movieItem) => {
-        const card = createMovieCard({
-          ...movieItem,
-          showContextMenu: !currentRoomId,
-          rooms: activeRooms,
-          onRoomsUpdate: function (rooms: RoomWithMovies[]) {
-            updateAllCardsRooms(card, rooms)
-          }
-        })
-        fragment.appendChild(card.element)
+      breadcrumbsEl.style.display = 'flex'
+      router.setBreadcrumbs(breadcrumbsEl, currentRoom?.name)
+      setCurrentBreadcrumb(breadcrumbsEl, 'каталог фильмов')
+    })
+  )
+
+  unsubs.push(
+    effect(() => {
+      if (state.isInitialLoading) {
+        pageEmptyEl.style.display = 'none'
+        moviesListEl.style.display = 'grid'
+        moviesListEl.innerHTML = ''
+
+        const fragment = document.createDocumentFragment()
+        for (let i = 0; i < 4; i++) {
+          fragment.appendChild(baseSkeleton.cloneNode(true))
+        }
+        moviesListEl.appendChild(fragment)
+        return
+      }
+
+      if (state.movies.length === 0) {
+        moviesListEl.style.display = 'none'
+        pageEmptyEl.style.display = 'flex'
+      } else {
+        moviesListEl.style.display = 'grid'
+        pageEmptyEl.style.display = 'none'
+      }
+    })
+  )
+
+  unsubs.push(
+    effect(() => {
+      const hasMore = state.page <= state.totalPages
+      const showSentinel = !state.isInitialLoading && state.movies.length > 0 && hasMore
+      sentinelEl.style.display = showSentinel ? 'flex' : 'none'
+    })
+  )
+
+  let abortController: AbortController | null = null
+
+  function appendMoviesToDom(items: MovieItem[], clearBefore = false) {
+    if (clearBefore) {
+      moviesListEl.innerHTML = ''
+    }
+
+    const fragment = document.createDocumentFragment()
+    for (const movieItem of items) {
+      const card = createMovieCard({
+        ...movieItem,
+        showContextMenu: !currentRoomId,
+        rooms: state.rooms,
+        onRoomsUpdate: (freshRooms) => {
+          state.rooms = freshRooms
+          card.updateRooms(freshRooms)
+        }
       })
-      moviesListEl.appendChild(fragment)
 
-      currentPage++
+      fragment.appendChild(card.element)
+    }
 
-      sentinelEl.style.display = currentPage <= totalPages ? 'flex' : 'none'
-    } catch (err) {
-      if (currentRequestId !== lastRequestId) return
+    moviesListEl.appendChild(fragment)
+  }
+
+  async function fetchMovies(isNewQuery = false) {
+    if (
+      !isNewQuery &&
+      (state.isMoreLoading || state.isInitialLoading || state.page > state.totalPages)
+    ) {
+      return
+    }
+
+    abortController?.abort()
+    abortController = new AbortController()
+
+    if (isNewQuery) {
+      state.page = 1
+      state.movies = []
+      state.isInitialLoading = true
+    } else {
+      state.isMoreLoading = true
+    }
+
+    try {
+      const data = await getMovies(state.query, state.page, {
+        signal: abortController.signal
+      })
+
+      const results = data.results ?? []
+      state.totalPages = data.total_pages || 1
+
+      if (!results.length) {
+        pageEmptyEl.style.display = 'flex'
+        pageEmptyTextEl.textContent = `по запросу «${state.query}» ничего не найдено`
+      }
 
       if (isNewQuery) {
-        moviesListEl.innerHTML = ''
+        state.movies = results
+        state.isInitialLoading = false
+        if (results.length > 0) {
+          appendMoviesToDom(results, true)
+        }
+      } else {
+        state.movies.push(...results)
+        appendMoviesToDom(results, false)
       }
+
+      state.page++
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') return
+
+      state.isInitialLoading = false
       toast.error(err instanceof Error ? err.message : 'Ошибка сети', {
         title: 'Ошибка при загрузке списка фильмов'
       })
     } finally {
-      isLoading = false
+      state.isMoreLoading = false
+      abortController = null
     }
   }
 
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(pageTemplate, 'text/html')
-  const pageRoot = doc.body.firstElementChild as HTMLElement
-
-  const pageTitleEl = pageRoot.querySelector<HTMLElement>('.page__title')!
-  pageTitleEl.textContent = 'Поиск по фильмам'
-
-  const moviesListEl = pageRoot.querySelector<HTMLElement>('.movies-page__watchlist')!
-  const pageFiltersEl = pageRoot.querySelector<HTMLElement>('.movies-page__filters')!
-  const pageEmptyEl = pageRoot.querySelector<HTMLElement>('.movies-page__empty')!
-  const sentinelEl = pageRoot.querySelector<HTMLElement>('.movies-page__sentinel')!
-
-  let currentQuery = 'a'
-  let currentPage = 1
-  let totalPages = 1
-  let isLoading = false
-  let lastRequestId = 0
-
-  const skeleton = createSkeleton({ size: 'l' })
-  skeleton.style.height = '500px'
-
   const observer = new IntersectionObserver(
     (entries) => {
-      if (entries[0].isIntersecting && !isLoading && currentPage <= totalPages) {
+      if (entries[0].isIntersecting) {
         fetchMovies(false)
       }
     },
-    {
-      root: null,
-      rootMargin: '250px',
-      threshold: 0
-    }
+    { root: null, rootMargin: '250px', threshold: 0 }
   )
-
   observer.observe(sentinelEl)
 
-  const handleSearch = debounce((query: string) => {
-    currentQuery = query.trim()
+  const handleSearch = debounce((value: string) => {
+    state.query = value.trim()
     fetchMovies(true)
   }, 400)
 
@@ -147,61 +215,26 @@ export async function renderMoviesPage() {
     placeholder: 'Введите название фильма',
     required: false,
     type: 'text',
-    onInput(value) {
-      handleSearch(value)
-    }
+    onInput: handleSearch
   })
   pageFiltersEl.appendChild(searchField.element)
 
-  moviesListEl.addEventListener('mouseenter', (event: MouseEvent) => {
-    const target = event.target as HTMLElement | null
-
-    const currentCard = target?.closest<HTMLElement>('.movie-card')
-    if (!currentCard) {
-      return
-    }
-    const contextMenu = currentCard.querySelector<HTMLElement>(
-      '.movie-card__context-menu'
-    )!
-    if (!contextMenu) {
-      return
-    }
-    contextMenu.style.visibility = 'visible'
-  })
-  moviesListEl.addEventListener('mouseleave', (event: MouseEvent) => {
-    const target = event.target as HTMLElement | null
-    const currentCard = target?.closest<HTMLElement>('.movie-card')
-    if (!currentCard || !moviesListEl.contains(currentCard)) return
-
-    const related = event.relatedTarget as Node | null
-
-    if (related && currentCard.contains(related)) {
-      return
-    }
-  })
-
-  activeRooms = await getUserRoomsWithMovies()
-  await fetchMovies(true)
-
-  if (currentRoomId) {
-    const currentRoom = activeRooms.find((room) => room.id === currentRoomId)
-    const currentRoomName = currentRoom?.name.toLowerCase()
-    pageTitleEl.textContent = currentRoom
-      ? `поиск фильмов для комнаты «${currentRoomName}»`
-      : pageTitleEl.textContent
-
-    const breadcrumbsEl = pageRoot.querySelector<HTMLElement>('.breadcrumbs')!
-    const roomBreadcrumb = document.createElement('a')
-    roomBreadcrumb.classList.add('link', 'link__sm', 'link__breadcrumb')
-    roomBreadcrumb.href = `/rooms/${currentRoom?.id}`
-    roomBreadcrumb.textContent = currentRoomName ?? ''
-    router.setBreadcrumbs(breadcrumbsEl, currentRoom?.name)
+  try {
+    const rooms = await getUserRoomsWithMovies()
+    state.rooms = rooms
+  } catch {
+    state.rooms = []
   }
+
+  fetchMovies(true)
 
   return {
     element: pageRoot,
     cleanup: () => {
       observer.disconnect()
+      abortController?.abort()
+      unsubs.forEach((unsub) => unsub())
+      handleSearch.cancel()
     }
   }
 }

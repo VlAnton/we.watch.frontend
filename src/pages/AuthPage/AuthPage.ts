@@ -6,14 +6,15 @@ import { renderRoomsPage } from '../RoomsPage/RoomsPage'
 
 export function renderAuthPage() {
   const pageRoot = document.createElement('div')
+  pageRoot.style.width = '100%'
 
   const mockedRoomsPage = renderRoomsPage({ isMocked: true })
 
-  pageRoot.appendChild(mockedRoomsPage)
+  pageRoot.appendChild(mockedRoomsPage.element)
 
   const authModalEl = createAuthModal({
     onSuccess(user) {
-      toast.success(`Рады видеть вас снова, ${user.username}!`, {
+      toast.success(`Рады видеть вас, ${user.username}!`, {
         title: 'Вход выполнен'
       })
 

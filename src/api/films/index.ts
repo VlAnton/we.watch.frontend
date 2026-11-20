@@ -1,7 +1,11 @@
 import { apiFetch } from '../client'
 import { MovieItem, TMDBMovieDetails, TMDBSearchResponse } from './types'
 
-export function getMovies(query: string, page: number) {
+export function getMovies(
+  query: string,
+  page: number,
+  options?: { signal?: AbortSignal }
+) {
   const params = new URLSearchParams()
   const trimmed = query.trim()
 
@@ -16,7 +20,8 @@ export function getMovies(query: string, page: number) {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
-    }
+    },
+    signal: options?.signal
   })
 }
 
