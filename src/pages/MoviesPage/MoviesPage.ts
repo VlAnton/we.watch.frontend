@@ -122,7 +122,8 @@ export async function renderMoviesPage() {
     for (const movieItem of items) {
       const card = createMovieCard({
         ...movieItem,
-        deleteOnly: !!currentRoomId
+        deleteOnly: !!currentRoomId && !router.currentRoute?.endsWith('/movies'),
+        showContextMenu: !currentRoomId
       })
 
       fragment.appendChild(card)

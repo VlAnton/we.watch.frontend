@@ -5,6 +5,7 @@ import { addToWatchlist, getUserRoomsWithMovies, removeFromWatchlist } from '@/a
 import closeIconSvg from '@/assets/icons/close.svg?raw'
 import plusIconSvg from '@/assets/icons/plus.svg?raw'
 import { router } from '@/main'
+import { effect } from '@/state/reactivity'
 import { store } from '@/state/store'
 
 import { createIconButton } from '../IconButton/IconButton'
@@ -14,6 +15,8 @@ import movieCardTemplate from './MovieCard.html?raw'
 
 interface MovieCardProps extends MovieItem {
   deleteOnly?: boolean
+  showContextMenu?: boolean
+  onRoomDelete?: () => void
 }
 
 const movieCardTemplateEl = document.createElement('template')
@@ -26,6 +29,7 @@ export function createMovieCard(props: MovieCardProps) {
 
   const currentRoomId = router.params.roomId ? parseInt(router.params.roomId, 10) : null
   const isDeleteOnly = Boolean(props.deleteOnly)
+  const hasContextMenu = !isDeleteOnly && Boolean(props.showContextMenu)
 
   movieCardEl.id = `movie-${props.movieId}`
   movieCardEl.href = currentRoomId
@@ -39,7 +43,7 @@ export function createMovieCard(props: MovieCardProps) {
   )!
 
   cardTitle.textContent = props.title
-  cardTitle.title = props.title // Нативный браузерный тултип с полным текстом при hover[cite: 2]
+  cardTitle.title = props.title
 
   const posterElement = createPoster({
     posterPath: props.posterPath,
@@ -50,9 +54,16 @@ export function createMovieCard(props: MovieCardProps) {
 
   let isSubmitting = false
 
-  const isMovieInRoom = (roomId: number): boolean => {
+  function isMovieInRoom(roomId: number | null): boolean {
+    if (!roomId) return false
     const targetRoom = store.roomsWithMovies.find((room) => room.id === roomId)
     return Boolean(targetRoom?.watchlist.some((movie) => movie.movieId === props.movieId))
+  }
+
+  function getActionIcon(): string {
+    if (isDeleteOnly) return closeIconSvg
+    if (hasContextMenu) return plusIconSvg
+    return isMovieInRoom(currentRoomId) ? closeIconSvg : plusIconSvg
   }
 
   const contextMenu = document.createElement('div')
@@ -81,38 +92,55 @@ export function createMovieCard(props: MovieCardProps) {
 
   async function syncRoomsState() {
     store.roomsWithMovies = await getUserRoomsWithMovies()
-    if (!isDeleteOnly) {
+    if (hasContextMenu) {
       renderMenuItems()
+    }
+    if (props.onRoomDelete) {
+      props.onRoomDelete()
     }
   }
 
   const actionBtn = createIconButton({
-    icon: isDeleteOnly ? closeIconSvg : plusIconSvg,
+    icon: getActionIcon(),
     size: 's',
     type: 'primary',
     async onClick(event) {
       event?.preventDefault()
       event?.stopPropagation()
 
-      if (!isDeleteOnly) {
-        await syncRoomsState()
-        contextMenu.style.display = contextMenu.style.display === 'flex' ? 'none' : 'flex'
+      if (hasContextMenu) {
+        const isOpening = contextMenu.style.display !== 'flex'
+        if (isOpening) {
+          renderMenuItems()
+          contextMenu.style.display = 'flex'
+        } else {
+          contextMenu.style.display = 'none'
+        }
         return
       }
 
       if (!currentRoomId || isSubmitting) return
       isSubmitting = true
 
+      const shouldRemove = isDeleteOnly || isMovieInRoom(currentRoomId)
+
       try {
-        const res = await removeFromWatchlist(currentRoomId, props.movieId)
+        const res = shouldRemove
+          ? await removeFromWatchlist(currentRoomId, props.movieId)
+          : await addToWatchlist(props, currentRoomId)
+
         toast.success(
-          `фильм «${res.item.title.toLowerCase()}» успешно удален из списка для просмотра`,
+          shouldRemove
+            ? `фильм «${res.item.title.toLowerCase()}» успешно удален из списка для просмотра`
+            : `фильм «${res.item.title.toLowerCase()}» успешно добавлен в список для просмотра`,
           { title: 'успех' }
         )
+
+        await syncRoomsState()
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message.toLowerCase() : 'ошибка сети'
         toast.error(message, {
-          title: 'ошибка удаления фильма'
+          title: shouldRemove ? 'ошибка удаления фильма' : 'ошибка добавления фильма'
         })
       } finally {
         isSubmitting = false
@@ -120,14 +148,20 @@ export function createMovieCard(props: MovieCardProps) {
     }
   })
 
-  if (!isDeleteOnly) {
+  if (!isDeleteOnly && !hasContextMenu) {
+    effect(() => {
+      actionBtn.setIcon(getActionIcon())
+    })
+  }
+
+  if (hasContextMenu) {
     cardActions.addEventListener('mouseleave', () => {
       contextMenu.style.display = 'none'
     })
 
     contextMenu.addEventListener('click', async (event: Event) => {
       event.preventDefault()
-      event.stopImmediatePropagation()
+      event.stopPropagation()
 
       const target = event.target as HTMLElement | null
       const currentItem = target?.closest<HTMLElement>('.movie-card__context-menu-item')
@@ -150,9 +184,10 @@ export function createMovieCard(props: MovieCardProps) {
             : `фильм «${res.item.title.toLowerCase()}» успешно добавлен в список комнаты «${roomName}»`,
           { title: 'успех' }
         )
+
         await syncRoomsState()
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'ошибка сети'
+        const message = err instanceof Error ? err.message.toLowerCase() : 'ошибка сети'
         toast.error(message, {
           title: alreadyInRoom ? 'ошибка удаления фильма' : 'ошибка добавления фильма'
         })

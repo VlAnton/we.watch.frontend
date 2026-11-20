@@ -29,6 +29,8 @@ export interface Room {
   code: string
   createdBy: number
   createdAt: string
+  moviesCount: number
+  membersCount: number
 }
 
 export interface RoomWatchlistItem extends MovieItem {

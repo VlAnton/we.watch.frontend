@@ -29,7 +29,10 @@ export async function renderRoomDetailsPage() {
       roomWatchlist.forEach((movie) => {
         const movieCard = createMovieCard({
           ...movie,
-          deleteOnly: true
+          deleteOnly: true,
+          async onRoomDelete() {
+            await setWatchList()
+          }
         })
         fragment.appendChild(movieCard)
       })

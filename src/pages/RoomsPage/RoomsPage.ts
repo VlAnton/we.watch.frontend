@@ -5,6 +5,7 @@ import type { Room } from '@/api/rooms/types'
 import { createButton } from '@/components/Button/Button'
 import { createInputField } from '@/components/Input/Input'
 import { createRoomModal } from '@/components/Modal/CreateRoomModal/CreateRoomModal'
+import { createRoomCard } from '@/components/RoomCard/RoomCard'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
 import { toast } from '@/components/Toast/Toast'
 import { debounce } from '@/utils/debounce'
@@ -21,39 +22,32 @@ export const MOCKED_ROOMS: Room[] = [
     createdAt: new Date().toLocaleDateString(),
     createdBy: 1,
     id: 1,
-    name: 'Комната 1'
+    name: 'Комната 1',
+    membersCount: 0,
+    moviesCount: 0
   },
   {
     code: 'mocked-code-2',
     createdAt: new Date().toLocaleDateString(),
     createdBy: 1,
     id: 2,
-    name: 'Комната 2'
+    name: 'Комната 2',
+    membersCount: 0,
+    moviesCount: 0
   },
   {
     code: 'mocked-code-3',
     createdAt: new Date().toLocaleDateString(),
     createdBy: 1,
     id: 3,
-    name: 'Комната 3'
+    name: 'Комната 3',
+    membersCount: 0,
+    moviesCount: 0
   }
 ]
 
 const pageTemplateEl = document.createElement('template')
 pageTemplateEl.innerHTML = roomsPageTemplate
-
-function createRoomCard(room: Pick<Room, 'id' | 'name'>): HTMLAnchorElement {
-  const card = document.createElement('a')
-  card.className = 'rooms-page__room-card'
-  card.href = `/rooms/${room.id}`
-
-  const title = document.createElement('h3')
-  title.className = 'rooms-page__room-card-title'
-  title.textContent = room.name
-
-  card.appendChild(title)
-  return card
-}
 
 export function renderRoomsPage(props: RoomsPageProps) {
   const pageRoot = pageTemplateEl.content.firstElementChild!.cloneNode(
@@ -74,7 +68,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
     roomsListEl.innerHTML = ''
     const fragment = document.createDocumentFragment()
     for (let i = 0; i < count; i++) {
-      fragment.appendChild(createSkeleton({ height: '80px' }))
+      fragment.appendChild(createSkeleton({ height: '135px' }))
     }
     roomsListEl.appendChild(fragment)
   }
@@ -90,7 +84,14 @@ export function renderRoomsPage(props: RoomsPageProps) {
     roomsListEmptyEl.style.display = 'none'
     const fragment = document.createDocumentFragment()
     for (const room of rooms) {
-      fragment.appendChild(createRoomCard(room))
+      fragment.appendChild(
+        createRoomCard({
+          ...room,
+          async onRoomDelete() {
+            await fetchRooms()
+          }
+        })
+      )
     }
     roomsListEl.appendChild(fragment)
   }

@@ -20,6 +20,12 @@ export function createRoom(payload: RoomPayload) {
   })
 }
 
+export function deleteRoom(roomId: number) {
+  return apiFetch<RoomsDeleteResponse>(`/api/rooms/${roomId}`, {
+    method: 'DELETE'
+  })
+}
+
 export function getRoomsList(query?: string, options?: { signal?: AbortSignal }) {
   const params = new URLSearchParams()
   const trimmed = query?.trim() ?? ''
