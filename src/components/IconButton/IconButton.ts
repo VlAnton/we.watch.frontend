@@ -4,34 +4,61 @@ import { parseSvg } from '@/utils/svg'
 
 import buttonTemplate from './IconButton.html?raw'
 
-interface ButtonProps<TData = void> {
+type IconButtonType = 'primary' | 'secondary' | 'secondary-altered' | 'transparent'
+
+interface IconButtonProps<TData = void> {
   icon: string | SVGElement | HTMLElement
   size?: 's' | 'm' | 'l'
-  type?: 'primary' | 'secondary' | 'secondary-altered' | 'transparent'
+  type?: IconButtonType
   onClick?: (event?: MouseEvent) => void | Promise<TData>
 }
 
 export interface IconButton {
   element: HTMLElement
   setIcon: (icon: string | SVGElement | HTMLElement) => void
+  setType: (type: IconButtonType) => void
 }
 
 const iconButtonTemplateEl = document.createElement('template')
 iconButtonTemplateEl.innerHTML = buttonTemplate
 
-export function createIconButton(props: ButtonProps): IconButton {
+export function createIconButton(props: IconButtonProps): IconButton {
+  function setIcon(icon: string | SVGElement | HTMLElement) {
+    if (typeof icon === 'string') {
+      const svgNode = parseSvg(icon)
+      iconContainer.appendChild(svgNode)
+    } else {
+      iconContainer.appendChild(icon)
+    }
+  }
+
+  function setType(type: IconButtonType) {
+    switch (type) {
+      case 'primary':
+        buttonRoot.style.backgroundColor = '#407ddf'
+        buttonRoot.style.color = '#fff'
+        break
+      case 'secondary':
+        buttonRoot.style.backgroundColor = '#ff45e6'
+        buttonRoot.style.color = '#fff'
+        break
+      case 'secondary-altered':
+        buttonRoot.style.backgroundColor = '#f3b9eb'
+        buttonRoot.style.color = '#fff'
+        break
+      case 'transparent':
+        buttonRoot.style.backgroundColor = 'transparent'
+        buttonRoot.style.color = '#3c7eea'
+    }
+  }
   const buttonRoot = iconButtonTemplateEl.content.firstElementChild!.cloneNode(
     true
   ) as HTMLElement
 
   const iconContainer = buttonRoot.querySelector<HTMLElement>('.icon-button__container')!
 
-  if (typeof props.icon === 'string') {
-    const svgNode = parseSvg(props.icon)
-    iconContainer.appendChild(svgNode)
-  } else {
-    iconContainer.appendChild(props.icon)
-  }
+  setIcon(props.icon)
+  setType(props.type || 'primary')
 
   switch (props.size) {
     case 's':
@@ -49,36 +76,16 @@ export function createIconButton(props: ButtonProps): IconButton {
       break
   }
 
-  switch (props.type) {
-    case 'primary':
-      buttonRoot.style.backgroundColor = '#407ddf'
-      buttonRoot.style.color = '#fff'
-      break
-    case 'secondary':
-      buttonRoot.style.backgroundColor = '#ff45e6'
-      buttonRoot.style.color = '#fff'
-      break
-    case 'secondary-altered':
-      buttonRoot.style.backgroundColor = '#f3b9eb'
-      buttonRoot.style.color = '#fff'
-      break
-    case 'transparent':
-      buttonRoot.style.backgroundColor = 'transparent'
-      buttonRoot.style.color = '#3c7eea'
-  }
-
   if (props.onClick) buttonRoot.addEventListener('click', props.onClick)
 
   return {
     element: buttonRoot,
     setIcon(icon) {
       iconContainer.innerHTML = ''
-      if (typeof icon === 'string') {
-        const svgNode = parseSvg(icon)
-        iconContainer.appendChild(svgNode)
-      } else {
-        iconContainer.appendChild(icon)
-      }
+      setIcon(icon)
+    },
+    setType(type) {
+      setType(type)
     }
   }
 }

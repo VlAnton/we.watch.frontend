@@ -151,6 +151,7 @@ export function createMovieCard(props: MovieCardProps) {
   if (!isDeleteOnly && !hasContextMenu) {
     effect(() => {
       actionBtn.setIcon(getActionIcon())
+      actionBtn.setType(isMovieInRoom(currentRoomId) ? 'secondary' : 'primary')
     })
   }
 
