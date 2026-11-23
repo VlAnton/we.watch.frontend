@@ -1,5 +1,3 @@
-import './Button.scss'
-
 import buttonTemplate from './Button.html?raw'
 
 interface ButtonProps<TData = void> {
@@ -18,23 +16,9 @@ export function createButton(props: ButtonProps) {
     true
   ) as HTMLElement
 
-  if (props.size) {
-    switch (props.size) {
-      case 's':
-        buttonRoot.style.height = '30px'
-        break
-      case 'm':
-        buttonRoot.style.height = '45px'
-        buttonRoot.style.fontSize = '16px'
-        buttonRoot.style.fontWeight = '600'
-        break
-      case 'l':
-        buttonRoot.style.height = '65px'
-        buttonRoot.style.fontSize = '18px'
-        buttonRoot.style.fontWeight = '700'
-        break
-    }
-  }
+  const buttonSize = props.size ?? 'm'
+
+  buttonRoot.classList.add(`button--${buttonSize}`)
 
   switch (props.type) {
     case 'primary':

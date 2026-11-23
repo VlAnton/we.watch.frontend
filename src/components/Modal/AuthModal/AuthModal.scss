@@ -14,7 +14,7 @@
     border-radius: 16px;
     font-size: 14px;
     font-weight: 500;
-    color: #407ddf;
+    color: $border;
     cursor: pointer;
     transition:
       background-color 0.2s,
@@ -59,7 +59,7 @@
 
     &-inner {
       min-height: 0;
-      overflow: hidden;
+      overflow: visible;
     }
 
     &--collapsed {

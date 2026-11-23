@@ -2,6 +2,7 @@ import { getMe } from '@/api/auth'
 import { HttpError } from '@/api/error'
 import { createMainLayout, MainLayoutInstance } from '@/layouts/MainLayout/MainLayout'
 import { renderErrorPage } from '@/pages/Error/Error'
+import { reactive } from '@/state/reactivity'
 
 import type { CleanupFn, Route, RouteParams } from './types'
 
@@ -21,18 +22,21 @@ export class Router {
   private mainLayout: MainLayoutInstance
   private activeParams: Record<string, string> = {}
 
-  private currentPath: string | null = null
+  private currentPath = reactive({
+    path: null as string | null
+  })
 
   constructor(rootElement: HTMLElement | Promise<HTMLElement>, onLogout: () => void) {
     this.rootElement = rootElement
 
     this.mainLayout = createMainLayout({
       onLogout,
-      onNavigateHome: () => this.navigate('/')
+      onNavigateHome: () => this.navigate('/'),
+      getCurrentRoute: () => this.currentRoute
     })
 
     window.addEventListener('popstate', () => {
-      this.handleRoute(window.location.pathname)
+      this.handleRoute(window.location.pathname + window.location.search)
     })
 
     document.addEventListener('click', (e) => {
@@ -55,12 +59,12 @@ export class Router {
   }
 
   public get currentRoute(): string | null {
-    return this.currentPath
+    return this.currentPath.path
   }
 
   public setBreadcrumbs(container: HTMLElement, roomName?: string) {
     container.innerHTML = ''
-    const paths = this.currentPath?.split('/')
+    const paths = this.currentPath?.path?.split('/')
     if (!paths) {
       return
     }
@@ -69,7 +73,7 @@ export class Router {
       const breadcrumbPath = `/${paths.slice(1, i).join('/')}`
 
       const breadcrumbEl = document.createElement('a')
-      breadcrumbEl.classList.add('link', 'link__sm', 'link__breadcrumb')
+      breadcrumbEl.classList.add('link', 'link--s', 'link__breadcrumb')
       breadcrumbEl.href = breadcrumbPath
       for (const [key, value] of Object.entries(BREADCRUMBS_TITLES_MAP)) {
         const breadcrumbRegExp = new RegExp(key)
@@ -92,11 +96,11 @@ export class Router {
 
   public navigate(url: string): void {
     window.history.pushState({}, '', url)
-    this.handleRoute(window.location.pathname)
+    this.handleRoute(window.location.pathname + window.location.search)
   }
 
   public start(): void {
-    this.handleRoute(window.location.pathname)
+    this.handleRoute(window.location.pathname + window.location.search)
   }
 
   private matchRoute(pattern: string, path: string): RouteParams | null {
@@ -118,7 +122,8 @@ export class Router {
     return params
   }
 
-  private async handleRoute(pathname: string): Promise<void> {
+  private async handleRoute(fullUrl: string): Promise<void> {
+    const [pathname] = fullUrl.split('?')
     let matchedRoute: Route | null = null
     let params: RouteParams = {}
 
@@ -146,7 +151,7 @@ export class Router {
         return
       }
     }
-    this.currentPath = pathname
+    this.currentPath.path = fullUrl
 
     this.activeParams = params
 

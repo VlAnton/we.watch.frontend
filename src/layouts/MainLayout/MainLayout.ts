@@ -10,6 +10,7 @@ export interface MainLayoutInstance {
 export interface MainLayoutProps {
   onLogout: () => void
   onNavigateHome: () => void
+  getCurrentRoute?: () => string | null
 }
 
 export function createMainLayout(props: MainLayoutProps): MainLayoutInstance {
@@ -21,7 +22,8 @@ export function createMainLayout(props: MainLayoutProps): MainLayoutInstance {
 
   const header = createHeader({
     onLogout: props.onLogout,
-    onNavigateHome: props.onNavigateHome
+    onNavigateHome: props.onNavigateHome,
+    getCurrentRoute: props.getCurrentRoute
   })
   root.appendChild(header)
   root.appendChild(contentSlot)

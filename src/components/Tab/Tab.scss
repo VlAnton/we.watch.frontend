@@ -1,0 +1,43 @@
+.tab {
+  position: relative;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:is(button) {
+    background-color: $background-primary;
+    color: $border;
+    border: 1px solid $border;
+
+    &.tab--active,
+    &:hover {
+      background-color: $border-hovered;
+      color: $background-primary;
+    }
+  }
+
+  &:is(a) {
+    transition: transform 0.2s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      height: 2px;
+      width: 100%;
+      background-color: $border;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.2s ease;
+    }
+
+    &.tab--active,
+    &:hover {
+      transform: scale(1.1);
+
+      &::after {
+        transform: scaleX(1);
+      }
+    }
+  }
+}

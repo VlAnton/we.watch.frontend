@@ -1,6 +1,7 @@
 import './Header.scss'
 
 import logoutSvg from '@/assets/icons/logout.svg?raw'
+import { effect } from '@/state/reactivity'
 
 import { createIconButton } from '../IconButton/IconButton'
 import { createTab } from '../Tab/Tab'
@@ -9,6 +10,7 @@ import headerTemplate from './Header.html?raw'
 export interface HeaderProps {
   onLogout?: () => void
   onNavigateHome?: () => void
+  getCurrentRoute?: () => string | null
 }
 
 const headerTemplateEl = document.createElement('template')
@@ -26,43 +28,31 @@ export function createHeader(props: HeaderProps = {}): HTMLElement {
   const roomsTab = createTab({
     text: 'комнаты',
     href: '/rooms',
-    size: 'm'
+    size: 's'
   })
   const moviesTab = createTab({
     text: 'фильмы',
     href: '/movies',
-    size: 'm'
+    size: 's'
   })
-  headerTabsEl.appendChild(roomsTab)
-  headerTabsEl.appendChild(moviesTab)
 
-  if (window.location.href.includes(roomsTab.href)) {
-    roomsTab.classList.add('link__tab--active')
-  } else {
-    moviesTab.classList.add('link__tab--active')
-  }
+  headerTabsEl.appendChild(roomsTab.element)
+  headerTabsEl.appendChild(moviesTab.element)
 
-  headerTabsEl.addEventListener('click', (event) => {
-    const target = event.target as HTMLElement
-    const clickedTab = target.closest<HTMLAnchorElement>('a')
+  const tabs = [
+    { instance: roomsTab, href: '/rooms' },
+    { instance: moviesTab, href: '/movies' }
+  ]
 
-    if (!clickedTab || !headerTabsEl.contains(clickedTab)) {
-      return
+  effect(() => {
+    const path = props.getCurrentRoute?.()
+    if (!path) return
+
+    for (const { instance, href } of tabs) {
+      const isActive = path.startsWith(href)
+      instance.toggleActive(isActive)
+      console.log(instance.isActive)
     }
-
-    const clickedHref = clickedTab.getAttribute('href')
-    if (!clickedHref) {
-      return
-    }
-
-    const allTabs = headerTabsEl.querySelectorAll<HTMLAnchorElement>('a')
-    allTabs.forEach((tab) => {
-      if (tab.getAttribute('href') === clickedHref) {
-        tab.classList.add('link__tab--active')
-      } else {
-        tab.classList.remove('link__tab--active')
-      }
-    })
   })
 
   const logoutBtn = createIconButton({

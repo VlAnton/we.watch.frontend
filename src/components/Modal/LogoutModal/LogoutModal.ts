@@ -46,7 +46,7 @@ export function createLogoutModal() {
     onCLick: () => {
       logoutUser()
         .then(() => {
-          router.navigate('/rooms')
+          router.navigate('/auth')
         })
         .catch((err) => {
           toast.error(err instanceof Error ? err.message : 'Ошибка сети', {

@@ -41,6 +41,21 @@ export function getRoomsList(query?: string, options?: { signal?: AbortSignal })
   })
 }
 
+export function getJoinedRoomsList(query?: string, options?: { signal?: AbortSignal }) {
+  const params = new URLSearchParams()
+  const trimmed = query?.trim() ?? ''
+
+  if (trimmed.length) {
+    params.set('query', trimmed)
+  }
+
+  const endpoint = `/api/rooms/joined${params.toString() ? `?${params.toString()}` : ''}`
+
+  return apiFetch<RoomsGetResponse>(endpoint, {
+    signal: options?.signal
+  })
+}
+
 export function getUserRoomsWithMovies() {
   return apiFetch<RoomWithMovies[]>('/api/rooms/my/with-movies')
 }

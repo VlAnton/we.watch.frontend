@@ -1,13 +1,16 @@
 import './RoomsPage.scss'
 
-import { getRoomsList } from '@/api/rooms'
+import { getJoinedRoomsList, getRoomsList } from '@/api/rooms'
 import type { Room } from '@/api/rooms/types'
 import { createButton } from '@/components/Button/Button'
 import { createInputField } from '@/components/Input/Input'
 import { createRoomModal } from '@/components/Modal/CreateRoomModal/CreateRoomModal'
 import { createRoomCard } from '@/components/RoomCard/RoomCard'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
+import { createTab } from '@/components/Tab/Tab'
 import { toast } from '@/components/Toast/Toast'
+import { router } from '@/main'
+import { effect, reactive } from '@/state/reactivity'
 import { debounce } from '@/utils/debounce'
 
 import roomsPageTemplate from './RoomsPage.html?raw'
@@ -55,6 +58,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
   ) as HTMLElement
 
   const roomsListEl = pageRoot.querySelector<HTMLElement>('.rooms-page__list')!
+  const tabsEl = pageRoot.querySelector<HTMLElement>('.rooms-page__tabs')!
   const roomsListFiltersEl = pageRoot.querySelector<HTMLElement>('.rooms-page__filters')!
   const roomsListEmptyEl = pageRoot.querySelector<HTMLElement>('.rooms-page__empty')!
   const pageListEmptyTitleEl = pageRoot.querySelector<HTMLElement>(
@@ -63,7 +67,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
 
   let abortController: AbortController | null = null
 
-  const showSkeletons = (count = 3) => {
+  function showSkeletons(count = 3) {
     roomsListEmptyEl.style.display = 'none'
     roomsListEl.innerHTML = ''
     const fragment = document.createDocumentFragment()
@@ -73,7 +77,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
     roomsListEl.appendChild(fragment)
   }
 
-  const renderList = (rooms: Room[]) => {
+  function renderList(rooms: Room[]) {
     roomsListEl.innerHTML = ''
 
     if (rooms.length === 0) {
@@ -96,7 +100,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
     roomsListEl.appendChild(fragment)
   }
 
-  const fetchRooms = async (query: string = '') => {
+  async function fetchRooms(query: string = '') {
     if (abortController) {
       abortController.abort()
     }
@@ -105,7 +109,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
     showSkeletons(3)
 
     try {
-      const { rooms } = await getRoomsList(query, { signal: abortController.signal })
+      const { rooms } = await state.getRooms(query, { signal: abortController.signal })
       setTimeout(() => {
         if (query && !rooms.length) {
           roomsListEmptyEl.style.display = 'flex'
@@ -128,6 +132,45 @@ export function renderRoomsPage(props: RoomsPageProps) {
     }
   }
 
+  const selfTab = createTab({
+    text: 'мои комнаты',
+    size: 'm',
+    href: '/rooms?my',
+    type: 'button'
+  })
+  const joinedTab = createTab({
+    text: 'комнаты, в которых я участник',
+    size: 'm',
+    href: '/rooms?joined',
+    type: 'button'
+  })
+  tabsEl.appendChild(selfTab.element)
+  tabsEl.appendChild(joinedTab.element)
+
+  const tabs = [
+    { instance: selfTab, href: '/rooms?my' },
+    { instance: joinedTab, href: '/rooms?joined' }
+  ]
+
+  effect(() => {
+    const path = router.currentRoute
+    if (!path) return
+
+    tabs.forEach((tab) => {
+      const isActive = path.startsWith(tab.href)
+      tab.instance.toggleActive(isActive)
+    })
+
+    const isAnyActive = tabs.some((tab) => tab.instance.isActive)
+    if (!isAnyActive) {
+      selfTab.toggleActive(true)
+    }
+  })
+
+  const state = reactive({
+    getRooms: selfTab.isActive ? getRoomsList : getJoinedRoomsList
+  })
+
   const handleSearch = debounce((query: string) => {
     fetchRooms(query)
   }, 300)
@@ -142,6 +185,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
       handleSearch(value.trim())
     }
   })
+  searchField.element.classList.add('rooms-page__search-field')
 
   const createModal = createRoomModal()
 
@@ -151,6 +195,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
     width: 'fit-content',
     onCLick: () => createModal.open()
   })
+  createBtn.classList.add('rooms-page__create-btn')
 
   roomsListFiltersEl.appendChild(searchField.element)
   roomsListFiltersEl.appendChild(createBtn)
@@ -166,6 +211,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
       abortController.abort()
     }
     handleSearch.cancel()
+    tabs.forEach((tab) => tab.instance.cleanup())
   }
 
   return { element: pageRoot, cleanup }

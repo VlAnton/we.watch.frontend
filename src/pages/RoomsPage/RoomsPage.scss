@@ -4,10 +4,28 @@
   gap: 40px;
 
   &__filters {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 158px;
+    grid-template-areas:
+      'tabs tabs'
+      'search create';
     gap: 30px;
     width: 100%;
     align-items: flex-end;
+  }
+
+  &__tabs {
+    grid-area: tabs;
+    display: flex;
+    gap: 16px;
+  }
+
+  &__search-field {
+    grid-area: search;
+  }
+
+  &__create-btn {
+    grid-area: create;
   }
 
   &__list {
