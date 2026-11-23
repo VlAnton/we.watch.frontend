@@ -1,6 +1,7 @@
 import { apiFetch } from '../client'
 import { MovieItem } from '../films/types'
 import {
+  Room,
   RoomAddMovieItem,
   RoomDetailsResponse,
   RoomPayload,
@@ -12,6 +13,16 @@ import {
 
 export function createRoom(payload: RoomPayload) {
   return apiFetch<RoomsPostResponse>('/api/rooms/', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+export function joinRoom(payload: { code: string }) {
+  return apiFetch<{ success: boolean; room: Room }>('/api/rooms/join', {
     method: 'POST',
     body: JSON.stringify(payload),
     headers: {

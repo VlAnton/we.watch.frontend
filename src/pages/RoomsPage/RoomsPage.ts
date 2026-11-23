@@ -2,9 +2,12 @@ import './RoomsPage.scss'
 
 import { getJoinedRoomsList, getRoomsList } from '@/api/rooms'
 import type { Room } from '@/api/rooms/types'
+import joinSvg from '@/assets/icons/join.svg?raw'
 import { createButton } from '@/components/Button/Button'
+import { createIconButton } from '@/components/IconButton/IconButton'
 import { createInputField } from '@/components/Input/Input'
 import { createRoomModal } from '@/components/Modal/CreateRoomModal/CreateRoomModal'
+import { createJoinRoomModal } from '@/components/Modal/JoinRoomModal/JoinRoomModal'
 import { createRoomCard } from '@/components/RoomCard/RoomCard'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
 import { createTab } from '@/components/Tab/Tab'
@@ -187,17 +190,29 @@ export function renderRoomsPage(props: RoomsPageProps) {
   })
   searchField.element.classList.add('rooms-page__search-field')
 
-  const createModal = createRoomModal()
+  const joinRoomModal = createJoinRoomModal()
+  const joinRoomBtn = createIconButton({
+    icon: joinSvg,
+    size: 'm',
+    type: 'outlined',
+    onClick() {
+      joinRoomModal.open()
+    }
+  })
+  joinRoomBtn.element.classList.add('rooms-page__join-btn')
 
+  const createModal = createRoomModal()
   const createBtn = createButton({
     text: 'Создать комнату',
     size: 'm',
     width: 'fit-content',
+    type: 'outlined',
     onCLick: () => createModal.open()
   })
   createBtn.classList.add('rooms-page__create-btn')
 
   roomsListFiltersEl.appendChild(searchField.element)
+  roomsListFiltersEl.appendChild(joinRoomBtn.element)
   roomsListFiltersEl.appendChild(createBtn)
 
   if (props.isMocked) {

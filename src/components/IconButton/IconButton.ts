@@ -4,7 +4,8 @@ import { parseSvg } from '@/utils/svg'
 
 import buttonTemplate from './IconButton.html?raw'
 
-type IconButtonType = 'primary' | 'secondary' | 'secondary-altered' | 'transparent'
+type IconButtonType =
+  'primary' | 'secondary' | 'secondary-altered' | 'transparent' | 'outlined'
 
 interface IconButtonProps<TData = void> {
   icon: string | SVGElement | HTMLElement
@@ -46,6 +47,11 @@ export function createIconButton(props: IconButtonProps): IconButton {
         buttonRoot.style.backgroundColor = '#f3b9eb'
         buttonRoot.style.color = '#fff'
         break
+      case 'outlined':
+        buttonRoot.style.backgroundColor = 'transparent'
+        buttonRoot.style.color = '#3c7eea'
+        buttonRoot.style.border = '1px solid #3c7eea'
+        break
       case 'transparent':
         buttonRoot.style.backgroundColor = 'transparent'
         buttonRoot.style.color = '#3c7eea'
@@ -67,8 +73,8 @@ export function createIconButton(props: IconButtonProps): IconButton {
       buttonRoot.style.borderRadius = '8px'
       break
     case 'm':
-      buttonRoot.style.height = '40px'
-      buttonRoot.style.width = '40px'
+      buttonRoot.style.height = '45px'
+      buttonRoot.style.width = '45px'
       break
     case 'l':
       buttonRoot.style.height = '60px'

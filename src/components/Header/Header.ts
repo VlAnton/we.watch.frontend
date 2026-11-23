@@ -51,7 +51,6 @@ export function createHeader(props: HeaderProps = {}): HTMLElement {
     for (const { instance, href } of tabs) {
       const isActive = path.startsWith(href)
       instance.toggleActive(isActive)
-      console.log(instance.isActive)
     }
   })
 

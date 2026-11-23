@@ -3,7 +3,7 @@ import buttonTemplate from './Button.html?raw'
 interface ButtonProps<TData = void> {
   text: string
   size?: 's' | 'm' | 'l'
-  type?: 'primary' | 'secondary' | 'secondary-altered' | 'transparent'
+  type?: 'primary' | 'secondary' | 'secondary-altered' | 'transparent' | 'outlined'
   width?: string
   onCLick?: (event?: MouseEvent) => void | Promise<TData>
 }
@@ -32,6 +32,11 @@ export function createButton(props: ButtonProps) {
     case 'secondary-altered':
       buttonRoot.style.backgroundColor = '#f3b9eb'
       buttonRoot.style.color = '#fff'
+      break
+    case 'outlined':
+      buttonRoot.style.backgroundColor = 'transparent'
+      buttonRoot.style.color = '#3c7eea'
+      buttonRoot.style.border = '1px solid #3c7eea'
       break
     case 'transparent':
       buttonRoot.style.backgroundColor = 'transparent'
