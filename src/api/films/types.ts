@@ -6,7 +6,6 @@ export interface TMDBSearchResponse<T> {
 }
 
 export interface MovieItem {
-  id: number
   movieId: number
   title: string
   posterPath: string
@@ -20,7 +19,7 @@ export interface TMDBCastItem {
 export interface TMDBMovieDetails {
   success: boolean
   data: {
-    id: number
+    movieId: number
     title: string
     posterPath?: string | null
     overview: string

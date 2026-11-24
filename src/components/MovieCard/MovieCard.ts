@@ -2,12 +2,14 @@ import './MovieCard.scss'
 
 import type { MovieItem } from '@/api/films/types'
 import { addToWatchlist, getUserRoomsWithMovies, removeFromWatchlist } from '@/api/rooms'
+import { RoomWithMovies } from '@/api/rooms/types'
 import closeIconSvg from '@/assets/icons/close.svg?raw'
 import plusIconSvg from '@/assets/icons/plus.svg?raw'
 import { router } from '@/main'
 import { effect } from '@/state/reactivity'
 import { store } from '@/state/store'
 
+import { createContextMenu } from '../ContextMenu/ContextMenu'
 import { createIconButton } from '../IconButton/IconButton'
 import { createPoster } from '../Image/Image'
 import { toast } from '../Toast/Toast'
@@ -66,34 +68,61 @@ export function createMovieCard(props: MovieCardProps) {
     return isMovieInRoom(currentRoomId) ? closeIconSvg : plusIconSvg
   }
 
-  const contextMenu = document.createElement('div')
-  contextMenu.className = 'movie-card__context-menu'
-  contextMenu.style.display = 'none'
-
-  function renderMenuItems() {
-    contextMenu.innerHTML = ''
-    const fragment = document.createDocumentFragment()
-
-    for (const room of store.roomsWithMovies) {
+  const contextMenu = createContextMenu({
+    renderItem(room: RoomWithMovies) {
       const inRoom = room.watchlist.some((movie) => movie.movieId === props.movieId)
-      const item = document.createElement('div')
-      item.className = 'movie-card__context-menu-item'
-      item.textContent = room.name
-      item.dataset.roomId = String(room.id)
+      const itemEl = document.createElement('div')
+      itemEl.className = 'context-menu__item'
+      itemEl.textContent = room.name
+      itemEl.dataset.roomId = String(room.id)
 
       if (inRoom) {
-        item.classList.add('movie-card__context-menu-item--active')
+        itemEl.classList.add('context-menu__item--active')
       }
-      fragment.appendChild(item)
-    }
+      return itemEl
+    },
+    async onSelect(event: MouseEvent) {
+      event.preventDefault()
+      event.stopPropagation()
 
-    contextMenu.appendChild(fragment)
-  }
+      const target = event.target as HTMLElement | null
+      const currentItem = target?.closest<HTMLElement>('.context-menu__item')
+      if (!currentItem || isSubmitting) return
+
+      const roomId = Number(currentItem.dataset.roomId)
+      const roomName = currentItem.textContent?.toLowerCase() ?? ''
+      const alreadyInRoom = isMovieInRoom(roomId)
+
+      isSubmitting = true
+
+      try {
+        const res = alreadyInRoom
+          ? await removeFromWatchlist(roomId, props.movieId)
+          : await addToWatchlist(props, roomId)
+
+        toast.success(
+          alreadyInRoom
+            ? `фильм «${res.item.title.toLowerCase()}» успешно удален из списка комнаты «${roomName}»`
+            : `фильм «${res.item.title.toLowerCase()}» успешно добавлен в список комнаты «${roomName}»`,
+          { title: 'успех' }
+        )
+
+        await syncRoomsState()
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message.toLowerCase() : 'ошибка сети'
+        toast.error(message, {
+          title: alreadyInRoom ? 'ошибка удаления фильма' : 'ошибка добавления фильма'
+        })
+      } finally {
+        isSubmitting = false
+      }
+    }
+  })
 
   async function syncRoomsState() {
     store.roomsWithMovies = await getUserRoomsWithMovies()
     if (hasContextMenu) {
-      renderMenuItems()
+      contextMenu.setItems(store.roomsWithMovies)
     }
     if (props.onRoomDelete) {
       props.onRoomDelete()
@@ -109,12 +138,12 @@ export function createMovieCard(props: MovieCardProps) {
       event?.stopPropagation()
 
       if (hasContextMenu) {
-        const isOpening = contextMenu.style.display !== 'flex'
+        const isOpening = contextMenu.element.style.display !== 'flex'
         if (isOpening) {
-          renderMenuItems()
-          contextMenu.style.display = 'flex'
+          contextMenu.setItems(store.roomsWithMovies)
+          contextMenu.open()
         } else {
-          contextMenu.style.display = 'none'
+          contextMenu.close()
         }
         return
       }
@@ -157,47 +186,10 @@ export function createMovieCard(props: MovieCardProps) {
 
   if (hasContextMenu) {
     cardActions.addEventListener('mouseleave', () => {
-      contextMenu.style.display = 'none'
+      contextMenu.close()
     })
 
-    contextMenu.addEventListener('click', async (event: Event) => {
-      event.preventDefault()
-      event.stopPropagation()
-
-      const target = event.target as HTMLElement | null
-      const currentItem = target?.closest<HTMLElement>('.movie-card__context-menu-item')
-      if (!currentItem || isSubmitting) return
-
-      const roomId = Number(currentItem.dataset.roomId)
-      const roomName = currentItem.textContent?.toLowerCase() ?? ''
-      const alreadyInRoom = isMovieInRoom(roomId)
-
-      isSubmitting = true
-
-      try {
-        const res = alreadyInRoom
-          ? await removeFromWatchlist(roomId, props.movieId)
-          : await addToWatchlist(props, roomId)
-
-        toast.success(
-          alreadyInRoom
-            ? `фильм «${res.item.title.toLowerCase()}» успешно удален из списка комнаты «${roomName}»`
-            : `фильм «${res.item.title.toLowerCase()}» успешно добавлен в список комнаты «${roomName}»`,
-          { title: 'успех' }
-        )
-
-        await syncRoomsState()
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message.toLowerCase() : 'ошибка сети'
-        toast.error(message, {
-          title: alreadyInRoom ? 'ошибка удаления фильма' : 'ошибка добавления фильма'
-        })
-      } finally {
-        isSubmitting = false
-      }
-    })
-
-    actionBtn.element.appendChild(contextMenu)
+    actionBtn.element.appendChild(contextMenu.element)
   }
 
   cardActions.appendChild(actionBtn.element)

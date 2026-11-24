@@ -3,13 +3,13 @@ import './MoviesPage.scss'
 import { getMovies } from '@/api/films'
 import type { MovieItem } from '@/api/films/types'
 import { getUserRoomsWithMovies } from '@/api/rooms'
-import type { RoomWithMovies } from '@/api/rooms/types'
 import { createInputField } from '@/components/Input/Input'
 import { createMovieCard } from '@/components/MovieCard/MovieCard'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
 import { toast } from '@/components/Toast/Toast'
 import { router } from '@/main'
 import { effect, reactive } from '@/state/reactivity'
+import { store } from '@/state/store'
 import { setCurrentBreadcrumb } from '@/utils/breadcrumbs'
 import { debounce } from '@/utils/debounce'
 
@@ -20,7 +20,6 @@ pageTemplateEl.innerHTML = pageTemplate
 
 interface MoviesPageState {
   movies: MovieItem[]
-  rooms: RoomWithMovies[]
   query: string
   page: number
   totalPages: number
@@ -47,7 +46,6 @@ export async function renderMoviesPage() {
 
   const state = reactive<MoviesPageState>({
     movies: [],
-    rooms: [],
     query: 'a',
     page: 1,
     totalPages: 1,
@@ -56,6 +54,8 @@ export async function renderMoviesPage() {
   })
 
   const baseSkeleton = createSkeleton({ height: '500px' })
+
+  store.roomsWithMovies = await getUserRoomsWithMovies()
 
   const unsubs: Array<() => void> = []
 
@@ -67,7 +67,7 @@ export async function renderMoviesPage() {
         return
       }
 
-      const currentRoom = state.rooms.find((r) => r.id === currentRoomId)
+      const currentRoom = store.rooms.find((r) => r.id === currentRoomId)
       pageTitleEl.textContent = currentRoom
         ? `поиск фильмов для комнаты «${currentRoom.name.toLowerCase()}»`
         : 'поиск фильмов'
@@ -213,13 +213,6 @@ export async function renderMoviesPage() {
     onInput: handleSearch
   })
   pageFiltersEl.appendChild(searchField.element)
-
-  try {
-    const rooms = await getUserRoomsWithMovies()
-    state.rooms = rooms
-  } catch {
-    state.rooms = []
-  }
 
   fetchMovies(true)
 

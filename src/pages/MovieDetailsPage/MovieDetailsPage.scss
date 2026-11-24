@@ -80,6 +80,11 @@
     text-transform: lowercase;
   }
 
+  &__action {
+    position: relative;
+    display: inline-block;
+  }
+
   &__info {
     display: grid;
     grid-template-columns: auto 1fr;

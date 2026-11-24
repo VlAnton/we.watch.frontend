@@ -1,13 +1,18 @@
 import './RoomDetailsPage.scss'
 
-import { getRoomDetails, leaveRoom } from '@/api/rooms'
+import { deleteRoom, getRoomDetails, leaveRoom } from '@/api/rooms'
+import deleteSvg from '@/assets/icons/close.svg?raw'
+import leaveSvg from '@/assets/icons/leave.svg?raw'
 import { createButton } from '@/components/Button/Button'
+import { createIconButton } from '@/components/IconButton/IconButton'
 import { createInputField } from '@/components/Input/Input'
+import { createConfirmModal } from '@/components/Modal/ConfirmModal/ConfirmModal'
 import { createMovieCard } from '@/components/MovieCard/MovieCard'
 import { createSkeleton } from '@/components/Skeleton/Skeleton'
 import { toast } from '@/components/Toast/Toast'
 import { router } from '@/main'
 import { effect, reactive } from '@/state/reactivity'
+import { store } from '@/state/store'
 import { setCurrentBreadcrumb } from '@/utils/breadcrumbs'
 import { debounce } from '@/utils/debounce'
 
@@ -83,24 +88,40 @@ export async function renderRoomDetailsPage() {
   router.setBreadcrumbs(breadcrumbsEl)
 
   const roomId = parseInt(router.params.roomId, 10)
+  const room = store.rooms.find((room) => room.id === roomId)
+  const isRoomOwner = store.user?.id === room?.createdBy
 
-  const leaveBtn = createButton({
-    text: 'выйти из комнаты',
-    size: 'm',
-    type: 'primary',
-    width: 'fit-content',
-    onCLick() {
-      leaveRoom(roomId)
-        .then(() => {
-          router.navigate('/rooms?my')
+  const confirmModal = createConfirmModal({
+    title: isRoomOwner
+      ? 'вы уверены что хотите удалить комнату?'
+      : 'вы уверены что хотите выйти из комнаты?',
+    confirmText: isRoomOwner ? 'удалить' : 'выйти',
+    async onConfirm() {
+      try {
+        if (isRoomOwner) {
+          await deleteRoom(roomId)
+        } else {
+          await leaveRoom(roomId)
+        }
+        router.navigate('/rooms?my')
+      } catch (err) {
+        toast.error(err instanceof Error ? err?.message : 'не удалось выйти из комнаты', {
+          title: 'ошибка'
         })
-        .catch((err) => {
-          toast.error(err?.message ?? 'не удалось выйти из комнаты', { title: 'ошибка' })
-        })
+      }
     }
   })
 
-  pageHeaderEl.appendChild(leaveBtn)
+  const leaveBtn = createIconButton({
+    icon: isRoomOwner ? deleteSvg : leaveSvg,
+    size: 'm',
+    type: 'primary',
+    async onClick() {
+      confirmModal.open()
+    }
+  })
+
+  pageHeaderEl.appendChild(leaveBtn.element)
 
   const skeleton = createSkeleton({ height: '500px' })
 
@@ -131,7 +152,7 @@ export async function renderRoomDetailsPage() {
     size: 'm',
     type: 'outlined',
     width: '170px',
-    onCLick: () => {
+    onClick: () => {
       router.navigate(`/rooms/${roomId}/movies`)
     }
   })

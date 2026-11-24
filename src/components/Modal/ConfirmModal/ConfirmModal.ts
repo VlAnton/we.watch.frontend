@@ -37,7 +37,7 @@ export function createConfirmModal(props: ConfirmModalProps) {
     text: 'Отменить',
     size: 'l',
     width: '100%',
-    onCLick: () => {
+    onClick: () => {
       baseModalEl.close()
     }
   })
@@ -46,7 +46,7 @@ export function createConfirmModal(props: ConfirmModalProps) {
     size: 'l',
     type: 'secondary',
     width: '100%',
-    onCLick: () => {
+    onClick: () => {
       props.onConfirm()
     }
   })

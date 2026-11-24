@@ -115,6 +115,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
 
     try {
       const { rooms } = await state.getRooms(query, { signal: abortController.signal })
+      store.rooms = rooms
       setTimeout(() => {
         if (query && !rooms.length) {
           roomsListEmptyEl.style.display = 'flex'
@@ -209,7 +210,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
     size: 'm',
     width: 'fit-content',
     type: 'outlined',
-    onCLick: () => createModal.open()
+    onClick: () => createModal.open()
   })
   createBtn.classList.add('rooms-page__create-btn')
 

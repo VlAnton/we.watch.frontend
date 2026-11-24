@@ -73,8 +73,11 @@ export function getJoinedRoomsList(query?: string, options?: { signal?: AbortSig
   })
 }
 
-export function getUserRoomsWithMovies() {
-  return apiFetch<RoomWithMovies[]>('/api/rooms/my/with-movies')
+export async function getUserRoomsWithMovies() {
+  const res = await apiFetch<{ rooms: RoomWithMovies[] } | RoomWithMovies[]>(
+    '/api/rooms/my/with-movies'
+  )
+  return Array.isArray(res) ? res : (res.rooms ?? [])
 }
 
 export function getRoomDetails(roomId: number, query: string = '') {

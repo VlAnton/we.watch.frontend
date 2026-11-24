@@ -25,7 +25,7 @@ export function getMovies(
   })
 }
 
-export function getMovieDetails(movieId: number) {
+export function getTMDBMovieDetails(movieId: number) {
   return apiFetch<TMDBMovieDetails>(`/api/films/${movieId}`, {
     method: 'GET',
     headers: {
