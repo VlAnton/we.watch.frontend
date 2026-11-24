@@ -31,6 +31,12 @@ export function joinRoom(payload: { code: string }) {
   })
 }
 
+export async function leaveRoom(roomId: number) {
+  return apiFetch<{ success: boolean; message: string }>(`/api/rooms/${roomId}/leave`, {
+    method: 'POST'
+  })
+}
+
 export function deleteRoom(roomId: number) {
   return apiFetch<RoomsDeleteResponse>(`/api/rooms/${roomId}`, {
     method: 'DELETE'

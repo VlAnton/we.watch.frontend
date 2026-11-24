@@ -1,17 +1,20 @@
-import './LogoutModal.scss'
+import './ConfirmModal.scss'
 
-import { logoutUser } from '@/api/auth'
 import { createButton } from '@/components/Button/Button'
-import { toast } from '@/components/Toast/Toast'
-import { router } from '@/main'
 
 import { createBaseModal } from '../BaseModal/BaseModal'
-import templateHtml from './LogoutModal.html?raw'
+import templateHtml from './ConfirmModal.html?raw'
 
 const logoutModalTemplateEl = document.createElement('template')
 logoutModalTemplateEl.innerHTML = templateHtml
 
-export function createLogoutModal() {
+interface ConfirmModalProps {
+  title: string
+  confirmText: string
+  onConfirm: () => void
+}
+
+export function createConfirmModal(props: ConfirmModalProps) {
   const modalRoot = logoutModalTemplateEl.content.firstElementChild!.cloneNode(
     true
   ) as HTMLElement
@@ -39,20 +42,12 @@ export function createLogoutModal() {
     }
   })
   const submitBtn = createButton({
-    text: 'Выйти',
+    text: props.confirmText,
     size: 'l',
     type: 'secondary',
     width: '100%',
     onCLick: () => {
-      logoutUser()
-        .then(() => {
-          router.navigate('/auth')
-        })
-        .catch((err) => {
-          toast.error(err instanceof Error ? err.message : 'Ошибка сети', {
-            title: 'Ошибка выхода из аккаунта'
-          })
-        })
+      props.onConfirm()
     }
   })
 

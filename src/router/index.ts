@@ -3,6 +3,7 @@ import { HttpError } from '@/api/error'
 import { createMainLayout, MainLayoutInstance } from '@/layouts/MainLayout/MainLayout'
 import { renderErrorPage } from '@/pages/Error/Error'
 import { reactive } from '@/state/reactivity'
+import { store } from '@/state/store'
 
 import type { CleanupFn, Route, RouteParams } from './types'
 
@@ -145,7 +146,8 @@ export class Router {
 
     if (matchedRoute.isProtected) {
       try {
-        await getMe()
+        const { user } = await getMe()
+        store.user = user
       } catch {
         this.navigate('/auth')
         return

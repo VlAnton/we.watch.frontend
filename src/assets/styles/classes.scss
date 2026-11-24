@@ -9,6 +9,12 @@ $header-height: 64px;
   flex-direction: column;
   gap: 24px;
 
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+  }
+
   &__title {
     text-transform: lowercase;
     font-size: 32px;

@@ -4,15 +4,32 @@ import '@/assets/styles/classes.scss'
 import { renderAuthPage } from '@/pages/AuthPage/AuthPage'
 import { Router } from '@/router'
 
-import { createLogoutModal } from './components/Modal/LogoutModal/LogoutModal'
+import { logoutUser } from './api/auth'
+import { createConfirmModal } from './components/Modal/ConfirmModal/ConfirmModal'
+import { toast } from './components/Toast/Toast'
 import { renderMovieDetailsPage } from './pages/MovieDetailsPage/MovieDetailsPage'
 import { renderMoviesPage } from './pages/MoviesPage/MoviesPage'
 import { renderRoomDetailsPage } from './pages/RoomDetailsPage/RoomDetailsPage'
 import { renderRoomsPage } from './pages/RoomsPage/RoomsPage'
 
-const app = document.querySelector<HTMLDivElement>('#app')!
+const app = document.getElementById('app')!
+
 export const router = new Router(app, () => {
-  const modalEl = createLogoutModal()
+  const modalEl = createConfirmModal({
+    title: 'уверены что хотите выйти?',
+    confirmText: 'выйти',
+    onConfirm() {
+      logoutUser()
+        .then(() => {
+          router.navigate('/auth')
+        })
+        .catch((err) => {
+          toast.error(err instanceof Error ? err.message : 'Ошибка сети', {
+            title: 'Ошибка выхода из аккаунта'
+          })
+        })
+    }
+  })
   app.appendChild(modalEl.element)
   modalEl.open()
 })

@@ -1,6 +1,6 @@
 import './RoomDetailsPage.scss'
 
-import { getRoomDetails } from '@/api/rooms'
+import { getRoomDetails, leaveRoom } from '@/api/rooms'
 import { createButton } from '@/components/Button/Button'
 import { createInputField } from '@/components/Input/Input'
 import { createMovieCard } from '@/components/MovieCard/MovieCard'
@@ -18,7 +18,6 @@ pageTemplateEl.innerHTML = pageTemplate
 
 export async function renderRoomDetailsPage() {
   async function setWatchList(query: string = '') {
-    const roomId = parseInt(router.params.roomId, 10)
     const roomDetailsData = await getRoomDetails(roomId, query)
     const roomWatchlist = roomDetailsData.watchlist
     if (roomWatchlist.length > 0) {
@@ -67,6 +66,7 @@ export async function renderRoomDetailsPage() {
     true
   ) as HTMLElement
 
+  const pageHeaderEl = pageRoot.querySelector<HTMLElement>('.page__header')!
   const pageTitleEl = pageRoot.querySelector<HTMLElement>('.page__title')!
   const pageWatchlistEl = pageRoot.querySelector<HTMLElement>(
     '.room-details-page__watchlist'
@@ -81,6 +81,26 @@ export async function renderRoomDetailsPage() {
   const breadcrumbsEl = pageRoot.querySelector<HTMLElement>('.breadcrumbs')!
 
   router.setBreadcrumbs(breadcrumbsEl)
+
+  const roomId = parseInt(router.params.roomId, 10)
+
+  const leaveBtn = createButton({
+    text: 'выйти из комнаты',
+    size: 'm',
+    type: 'primary',
+    width: 'fit-content',
+    onCLick() {
+      leaveRoom(roomId)
+        .then(() => {
+          router.navigate('/rooms?my')
+        })
+        .catch((err) => {
+          toast.error(err?.message ?? 'не удалось выйти из комнаты', { title: 'ошибка' })
+        })
+    }
+  })
+
+  pageHeaderEl.appendChild(leaveBtn)
 
   const skeleton = createSkeleton({ height: '500px' })
 
@@ -109,10 +129,10 @@ export async function renderRoomDetailsPage() {
   const toMoviesCatalogBtn = createButton({
     text: 'добавить фильм',
     size: 'm',
-    type: 'primary',
-    width: 'fit-content',
+    type: 'outlined',
+    width: '170px',
     onCLick: () => {
-      router.navigate(`/rooms/${router.params.roomId}/movies`)
+      router.navigate(`/rooms/${roomId}/movies`)
     }
   })
   pageFiltersEl.appendChild(searchField.element)

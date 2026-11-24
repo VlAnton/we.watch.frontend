@@ -14,6 +14,7 @@ import { createTab } from '@/components/Tab/Tab'
 import { toast } from '@/components/Toast/Toast'
 import { router } from '@/main'
 import { effect, reactive } from '@/state/reactivity'
+import { store } from '@/state/store'
 import { debounce } from '@/utils/debounce'
 
 import roomsPageTemplate from './RoomsPage.html?raw'
@@ -94,7 +95,8 @@ export function renderRoomsPage(props: RoomsPageProps) {
       fragment.appendChild(
         createRoomCard({
           ...room,
-          async onRoomDelete() {
+          isRoomOwner: store.user?.id === room.createdBy,
+          async onRoomAction() {
             await fetchRooms()
           }
         })
@@ -155,7 +157,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
     { instance: joinedTab, href: '/rooms?joined' }
   ]
 
-  effect(() => {
+  const pathCleanup = effect(() => {
     const path = router.currentRoute
     if (!path) return
 
@@ -226,6 +228,7 @@ export function renderRoomsPage(props: RoomsPageProps) {
       abortController.abort()
     }
     handleSearch.cancel()
+    pathCleanup()
     tabs.forEach((tab) => tab.instance.cleanup())
   }
 
