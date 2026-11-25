@@ -30,7 +30,7 @@ export function createConfirmModal(props: ConfirmModalProps) {
   const baseModalEl = createBaseModal({
     content: modalRoot,
     closable: true,
-    title: 'уверены что хотите выйти?'
+    title: props.title
   })
 
   const declineBtn = createButton({
